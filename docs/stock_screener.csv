@@ -1,0 +1,46 @@
+Sector,Sector signal,Stock,Score,Setup,Close,1W %,RS vs Sector 1M,RS vs Sector 3M,RS vs Nifty 3M,RS rising,Trend,RSI,MACD,ADX,+DI>-DI,Supertrend,Vol ratio,From 52W high %,Stop loss,Risk %,Sector rank
+IT,OUTPERFORMING - strong,TECHM,83.9,Breakout / near 52W high,1795.0,1.11,2.34,3.87,20.32,Yes,Strong uptrend,72.0,"Bullish, fading",28.8,Yes,Buy,1.48,-2.71,1641.29,9.37,1
+IT,OUTPERFORMING - strong,COFORGE,80.0,Momentum,1993.0,2.11,-2.09,22.36,38.82,No,Strong uptrend,64.1,Bullish,17.4,No,Buy,1.26,-1.4,1777.95,12.1,2
+IT,OUTPERFORMING - strong,PERSISTENT,70.7,Momentum,5850.0,1.9,-2.26,0.7,17.15,No,Strong uptrend,58.7,Bullish,18.5,Yes,Buy,1.6,-10.72,5463.57,7.07,3
+IT,OUTPERFORMING - strong,TCS,67.9,Neutral,2535.0,2.84,8.06,0.87,17.32,Yes,Above 200 EMA,74.9,"Bullish, fading",38.0,Yes,Buy,1.47,-22.47,2331.68,8.72,4
+IT,OUTPERFORMING - strong,HCLTECH,67.3,Neutral,1417.0,2.68,-0.14,0.3,16.75,Yes,Above 200 EMA,72.2,"Bullish, fading",30.8,Yes,Buy,1.21,-17.32,1316.54,7.63,5
+IT,OUTPERFORMING - strong,MPHASIS,61.6,Neutral,2557.6,2.3,-0.68,-0.41,16.05,No,Above 200 EMA,65.1,"Bullish, fading",29.4,Yes,Buy,1.59,-11.73,2319.96,10.24,6
+IT,OUTPERFORMING - strong,WIPRO,55.9,Weak - avoid,189.2,2.6,0.83,-4.14,12.31,Yes,Downtrend,71.4,"Bullish, fading",34.7,Yes,Buy,1.6,-28.12,176.23,7.36,7
+IT,OUTPERFORMING - strong,INFY,54.8,Weak - avoid,1166.0,0.41,0.36,-0.17,16.29,Yes,Downtrend,65.5,"Bullish, fading",25.6,No,Buy,1.89,-31.06,1057.86,10.22,8
+IT,OUTPERFORMING - strong,OFSS,6.7,Weak - avoid,9913.0,-4.55,-22.53,-19.12,-2.67,No,Downtrend,36.5,"Bearish, improving",32.4,No,Sell,0.95,-20.95,9201.86,7.73,9
+Auto,Watch - turning up,HEROMOTOCO,66.0,Neutral,5199.0,-0.5,4.44,12.01,8.02,Yes,Above 200 EMA,51.4,Bullish,25.7,No,Sell,0.84,-15.81,4902.5,6.05,1
+Auto,Watch - turning up,BOSCHLTD,62.0,Neutral,44900.0,-1.45,1.68,16.5,12.51,Yes,Above 200 EMA,46.4,Bullish,28.0,No,Sell,0.43,-10.2,42678.53,5.21,2
+Auto,Watch - turning up,TVSMOTOR,55.8,Neutral,3996.0,-2.42,4.69,11.51,7.52,Yes,Above 200 EMA,46.2,"Bullish, fading",30.2,No,Sell,0.7,-10.89,3776.07,5.82,3
+Auto,Watch - turning up,MOTHERSON,42.0,Neutral,153.75,-3.91,1.57,13.89,9.9,No,Above 200 EMA,41.8,Bearish,21.6,No,Sell,0.94,-11.27,144.48,6.42,4
+Auto,Watch - turning up,EICHERMOT,41.5,Weak - avoid,7099.5,-2.54,3.09,2.3,-1.69,Yes,Downtrend,43.5,"Bullish, fading",37.5,No,Buy,1.09,-13.05,6915.89,2.65,5
+Auto,Watch - turning up,M&M,30.8,Weak - avoid,2853.1,-2.32,2.06,-1.5,-5.48,Yes,Downtrend,40.3,"Bullish, fading",48.5,No,Sell,0.97,-24.92,2718.53,4.95,6
+Auto,Watch - turning up,BAJAJ-AUTO,26.1,Weak - avoid,10071.0,-3.21,-3.61,-1.26,-5.25,Yes,Downtrend,37.3,"Bullish, fading",42.9,No,Sell,0.73,-19.24,9542.39,5.54,7
+Auto,Watch - turning up,ASHOKLEY,21.3,Weak - avoid,141.9,-4.71,-4.83,2.19,-1.8,No,Downtrend,31.6,"Bullish, fading",41.5,No,Sell,0.92,-33.0,133.89,5.98,8
+Auto,Watch - turning up,MARUTI,12.6,Weak - avoid,11220.0,-2.34,-0.21,-7.44,-11.42,No,Downtrend,34.8,Bullish,51.2,No,Sell,1.05,-34.76,10718.71,4.68,9
+Auto,Watch - turning up,BHARATFORG,3.0,Weak - avoid,1730.4,-5.7,-5.6,-11.32,-15.31,No,Downtrend,31.6,"Bearish, improving",36.0,No,Sell,1.04,-24.6,1630.44,6.13,10
+Auto,Watch - turning up,TIINDIA,3.0,Weak - avoid,2085.2,-5.1,-11.08,-16.34,-20.33,No,Downtrend,24.5,"Bearish, improving",47.6,No,Sell,0.93,-37.44,1927.47,8.18,11
+Auto,Watch - turning up,EXIDEIND,3.0,Weak - avoid,336.9,-9.18,-12.85,-15.69,-19.68,No,Downtrend,18.1,"Bearish, improving",41.4,No,Sell,0.89,-32.13,313.38,7.51,12
+Consumption,Watch - turning up,INDHOTEL,100.0,Breakout / near 52W high,795.5,3.03,13.39,17.01,13.62,Yes,Strong uptrend,68.4,Bullish,21.5,Yes,Buy,2.87,-0.02,711.16,11.86,1
+Consumption,Watch - turning up,BHARTIARTL,83.3,Neutral,1917.5,0.66,11.02,8.67,5.28,Yes,Above 200 EMA,62.0,Bullish,22.2,Yes,Buy,1.22,-10.71,1763.38,8.74,2
+Consumption,Watch - turning up,ETERNAL,78.0,Pullback to 20 EMA,325.55,0.08,1.43,23.92,20.54,Yes,Strong uptrend,53.0,"Bearish, improving",17.9,No,Sell,1.49,-6.38,304.61,6.87,3
+Consumption,Watch - turning up,ITC,30.6,Weak - avoid,260.5,-1.14,2.85,-0.44,-3.83,Yes,Downtrend,47.1,"Bearish, improving",23.2,No,Sell,0.98,-35.93,248.94,4.64,4
+Consumption,Watch - turning up,M&M,30.2,Weak - avoid,2853.1,-2.32,0.43,-2.1,-5.48,Yes,Downtrend,40.3,"Bullish, fading",48.5,No,Sell,0.97,-24.92,2718.53,4.95,5
+Consumption,Watch - turning up,TRENT,22.7,Weak - avoid,2754.0,-6.92,5.7,2.93,-0.45,No,Downtrend,43.3,Bearish,25.1,No,Sell,1.05,-43.33,2601.38,5.87,6
+Consumption,Watch - turning up,ASIANPAINT,16.8,Weak - avoid,2322.0,-0.42,1.01,-4.32,-7.71,No,Downtrend,40.0,Bullish,44.0,No,Sell,1.05,-21.55,2219.79,4.6,7
+Consumption,Watch - turning up,TITAN,16.4,Weak - avoid,4323.0,-2.74,-4.99,0.09,-3.3,No,Downtrend,30.7,"Bearish, improving",46.4,No,Sell,0.78,-16.65,4137.34,4.49,8
+Consumption,Watch - turning up,MARUTI,12.0,Weak - avoid,11220.0,-2.34,-1.84,-8.04,-11.42,No,Downtrend,34.8,Bullish,51.2,No,Sell,1.05,-34.76,10718.71,4.68,9
+Consumption,Watch - turning up,DMART,3.0,Weak - avoid,3150.0,-5.75,-11.43,-13.96,-17.35,No,Downtrend,21.6,"Bearish, improving",44.9,No,Sell,0.99,-32.17,2978.59,5.75,10
+Consumption,Watch - turning up,HINDUNILVR,2.4,Weak - avoid,1818.6,-3.97,-0.32,-7.56,-10.95,No,Downtrend,37.3,Bearish,33.8,No,Sell,0.73,-30.58,1742.25,4.38,11
+Consumption,Watch - turning up,NESTLEIND,0.0,Weak - avoid,1173.5,-7.27,-8.98,-11.05,-14.44,No,Downtrend,26.6,Bearish,36.7,No,Sell,0.95,-24.44,1098.44,6.83,12
+MNC,Watch - turning up,BOSCHLTD,62.0,Neutral,44900.0,-1.45,5.18,21.89,12.51,Yes,Above 200 EMA,46.4,Bullish,28.0,No,Sell,0.43,-10.2,42678.53,5.21,1
+MNC,Watch - turning up,GILLETTE,45.9,Weak - avoid,7256.5,0.42,13.84,7.09,-2.29,Yes,Downtrend,55.0,"Bullish, fading",17.6,Yes,Sell,0.86,-22.73,6937.43,4.6,2
+MNC,Watch - turning up,VBL,32.8,Weak - avoid,408.0,-5.23,5.09,2.99,-6.39,Yes,Downtrend,41.2,"Bearish, improving",24.9,No,Sell,0.89,-26.51,383.56,6.37,3
+MNC,Watch - turning up,MARUTI,28.0,Weak - avoid,11220.0,-2.34,3.29,-2.04,-11.42,Yes,Downtrend,34.8,Bullish,51.2,No,Sell,1.05,-34.76,10718.71,4.68,4
+MNC,Watch - turning up,ESCORTS,23.8,Weak - avoid,2575.9,-6.36,3.64,2.32,-7.06,Yes,Downtrend,31.4,Bearish,26.9,No,Sell,1.0,-34.35,2435.19,5.78,5
+MNC,Watch - turning up,BRITANNIA,20.6,Weak - avoid,4580.0,-3.86,4.47,0.21,-9.18,Yes,Downtrend,33.4,Bearish,39.8,No,Sell,0.86,-25.75,4387.41,4.39,6
+MNC,Watch - turning up,HINDUNILVR,18.4,Weak - avoid,1818.6,-3.97,4.81,-1.57,-10.95,Yes,Downtrend,37.3,Bearish,33.8,No,Sell,0.73,-30.58,1742.25,4.38,7
+MNC,Watch - turning up,ABB,16.6,Weak - avoid,6357.5,-6.52,0.84,0.86,-8.52,No,Downtrend,36.6,Bearish,33.9,No,Sell,2.13,-18.83,5877.61,8.16,8
+MNC,Watch - turning up,SIEMENS,14.7,Weak - avoid,3278.8,-9.53,-4.08,2.95,-6.43,No,Downtrend,29.4,Bearish,33.6,No,Sell,0.98,-20.98,3046.55,7.62,9
+MNC,Watch - turning up,COLPAL,6.1,Weak - avoid,1615.5,-8.78,-2.83,-8.91,-18.29,No,Downtrend,31.9,Bearish,21.4,No,Sell,1.4,-29.09,1507.25,7.18,10
+MNC,Watch - turning up,CUMMINSIND,5.0,Weak - avoid,4385.5,-4.83,-0.92,-8.04,-17.43,No,Downtrend,27.9,"Bearish, improving",41.3,No,Sell,0.91,-27.51,4134.98,6.06,11
+MNC,Watch - turning up,NESTLEIND,4.9,Weak - avoid,1173.5,-7.27,-3.86,-5.05,-14.44,No,Downtrend,26.6,Bearish,36.7,No,Sell,0.95,-24.44,1098.44,6.83,12
