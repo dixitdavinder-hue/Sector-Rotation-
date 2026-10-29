@@ -18,6 +18,9 @@ Method (all relative to Nifty 50, weekly data):
   6. Leading stocks: inside sectors that are outperforming / turning up, every stock is scored on
      RS vs its sector and vs Nifty, 20/50/200 EMA trend, RSI(14), MACD(12,26,9), ADX(14),
      Supertrend(10,3), volume surge, distance from 52-week high, with a suggested stop loss.
+  7. Swing (2-20 days) and Positional (1-6 months) scores: weekly trend, rising 200 EMA, base /
+     consolidation breakouts, pullbacks to 20 EMA, stock Mansfield RS, fresh MACD crosses,
+     with entry, stop loss and 2R / 3R targets for each.
 
 Usage:
     python -m pip install yfinance pandas numpy matplotlib
@@ -337,7 +340,145 @@ def pct(a, b):
     return (a / b - 1) * 100
 
 
-def analyse_stock(df, sec_px, bench_px):
+def base_info(h, l, c, days):
+    """Range of the last `days` sessions (excluding today) and whether today broke out of it."""
+    prior_h = h.iloc[-days - 1:-1].max()
+    prior_l = l.iloc[-days - 1:-1].min()
+    depth = (prior_h - prior_l) / prior_h * 100
+    return depth, prior_h, prior_l, c.iloc[-1] > prior_h
+
+
+def swing_positional(df, c, h, l, v, sp, bp, close, e20, e50, e200, r, hist, atr_now,
+                     adx_now, di_bull, st_dir, vol_ratio, from_high, rs_sec_1m, rs_nifty_3m,
+                     sector_quadrant):
+    """Swing (2-20 days) and positional (1-6 months) scores, setups and trade plans."""
+    ema20_s, ema200_s = ema(c, 20), ema(c, 200)
+    rsi_s = rsi(c)
+    vol20 = v.iloc[-21:-1].mean()
+    vol_today = v.iloc[-1] / vol20 if vol20 > 0 else np.nan
+    up_day = c.iloc[-1] > c.iloc[-2]
+
+    rs_nifty_1m = pct(close, c.iloc[-22]) - pct(bp.iloc[-1], bp.iloc[-22])
+    rs_nifty_6m = pct(close, c.iloc[-127]) - pct(bp.iloc[-1], bp.iloc[-127]) if len(c) > 127 else np.nan
+    rs_n = c / bp
+    mansfield = (rs_n.iloc[-1] / rs_n.rolling(250, min_periods=150).mean().iloc[-1] - 1) * 100
+
+    # weekly trend
+    wk = c.resample("W-FRI").last().dropna()
+    w10, w30 = wk.rolling(10).mean(), wk.rolling(30).mean()
+    weekly_up = bool(wk.iloc[-1] > w30.iloc[-1] and w10.iloc[-1] > w30.iloc[-1]
+                     and w30.iloc[-1] > w30.iloc[-5])
+    ema200_rising = ema200_s.iloc[-1] > ema200_s.iloc[-21]
+
+    # momentum timing
+    macd_fresh = hist.iloc[-1] > 0 and (hist.iloc[-6:-1] <= 0).any()
+    macd_up = hist.iloc[-1] > 0 and hist.iloc[-1] >= hist.iloc[-2]
+    rsi_rising = r > rsi_s.iloc[-6]
+
+    # bases
+    s_depth, s_hi, s_lo, s_break = base_info(h, l, c, 15)     # ~3-week base for swing
+    p_depth, p_hi, p_lo, p_break = base_info(h, l, c, 40)     # ~8-week base for positional
+    vol_confirm = vol_today >= 1.5 and up_day
+    swing_tight = s_depth <= 10
+    pos_base = p_depth <= 18
+
+    pullback = (close > e20 > e50 and l.iloc[-3:].min() <= ema20_s.iloc[-1] * 1.015
+                and close > ema20_s.iloc[-1])
+    extended = pct(close, e20) > 8 or r > 75
+
+    # ---------------- swing
+    if s_break and swing_tight and vol_confirm:
+        s_setup = "Base breakout"
+    elif pullback and 40 <= r <= 60:
+        s_setup = "Pullback to 20 EMA"
+    elif extended:
+        s_setup = "Extended - wait"
+    elif swing_tight and close > e50 and pct(close, s_hi) > -4:
+        s_setup = "Tight base - watch"
+    elif close < e50:
+        s_setup = "No setup - below 50 EMA"
+    else:
+        s_setup = "No clear setup"
+
+    s_score = (
+        (15 if close > e20 > e50 else 8 if close > e50 else 0)
+        + (15 if 50 <= r <= 65 and rsi_rising else 8 if 45 <= r <= 70 else 0)
+        + (20 if s_setup in ("Base breakout", "Pullback to 20 EMA") else
+           10 if s_setup == "Tight base - watch" else 0)
+        + (10 if vol_confirm else 5 if vol_ratio > 1.2 else 0)
+        + (10 if macd_fresh or macd_up else 0)
+        + (10 if rs_sec_1m > 0 else 0)
+        + (10 if rs_nifty_1m > 0 else 0)
+        + (10 if st_dir == 1 else 0)
+    )
+
+    s_entry = close
+    s_stop = max(l.iloc[-5:].min(), close - 2 * atr_now)
+    if close - s_stop < atr_now:                      # too tight: give at least 1 ATR
+        s_stop = close - atr_now
+    s_risk = close - s_stop
+    s_t1, s_t2 = close + 2 * s_risk, close + 3 * s_risk
+
+    # ---------------- positional
+    if p_break and pos_base and vol_ratio > 1.1:
+        p_setup = "Base breakout"
+    elif weekly_up and from_high > -5:
+        p_setup = "Near 52W high"
+    elif weekly_up and pos_base:
+        p_setup = "Building base"
+    elif weekly_up:
+        p_setup = "Weekly uptrend"
+    elif close > e200 and ema200_rising:
+        p_setup = "Early trend"
+    else:
+        p_setup = "Avoid - no trend"
+
+    p_score = (
+        (15 if close > e200 and ema200_rising else 0)
+        + (5 if e50 > e200 else 0)
+        + (15 if weekly_up else 0)
+        + (10 if from_high > -5 else 6 if from_high > -15 else 0)
+        + (10 if mansfield > 0 else 0)
+        + (5 if rs_nifty_3m > 0 else 0)
+        + (5 if (rs_nifty_6m or -1) > 0 else 0)
+        + (10 if sector_quadrant in ("Leading", "Improving") else 0)
+        + (10 if adx_now > 25 and di_bull else 0)
+        + (10 if p_setup == "Base breakout" else 5 if pos_base else 0)
+        + (5 if vol_ratio > 1.2 else 0)
+    )
+
+    p_stop = max(l.iloc[-20:].min(), close * 0.88)
+    if close - p_stop < close * 0.03:
+        p_stop = close * 0.95
+    p_risk = close - p_stop
+    p_t1, p_t2 = close + 2 * p_risk, close + 3 * p_risk
+
+    return {
+        "Swing score": int(s_score),
+        "Swing setup": s_setup,
+        "Swing stop": round(s_stop, 2),
+        "Swing T1": round(s_t1, 2),
+        "Swing T2": round(s_t2, 2),
+        "Swing risk %": round(s_risk / s_entry * 100, 2),
+        "Positional score": int(p_score),
+        "Positional setup": p_setup,
+        "Positional stop": round(p_stop, 2),
+        "Positional T1": round(p_t1, 2),
+        "Positional T2": round(p_t2, 2),
+        "Positional risk %": round(p_risk / close * 100, 2),
+        "Weekly uptrend": "Yes" if weekly_up else "No",
+        "200 EMA rising": "Yes" if ema200_rising else "No",
+        "Mansfield RS": round(mansfield, 2),
+        "RS vs Nifty 1M": round(rs_nifty_1m, 2),
+        "RS vs Nifty 6M": round(rs_nifty_6m, 2) if not np.isnan(rs_nifty_6m) else None,
+        "3W base depth %": round(s_depth, 1),
+        "8W base depth %": round(p_depth, 1),
+        "Vol today x": round(vol_today, 2),
+        "MACD fresh cross": "Yes" if macd_fresh else "No",
+    }
+
+
+def analyse_stock(df, sec_px, bench_px, sector_quadrant=""):
     c, h, l, v = df["Close"], df["High"], df["Low"], df["Volume"]
     sp = sec_px.reindex(c.index).ffill()
     bp = bench_px.reindex(c.index).ffill()
@@ -407,6 +548,10 @@ def analyse_stock(df, sec_px, bench_px):
     )
 
     stop = st_line if st_dir == 1 else close - 2 * atr_now
+
+    swing = swing_positional(df, c, h, l, v, sp, bp, close, e20, e50, e200, r, hist, atr_now,
+                             adx_now, pdi.iloc[-1] > mdi.iloc[-1], st_dir, vol_ratio, from_high,
+                             rs_sec_1m, rs_nifty_3m, sector_quadrant)
     return {
         "Score": round(float(score), 1),
         "Setup": setup,
@@ -425,7 +570,8 @@ def analyse_stock(df, sec_px, bench_px):
         "Vol ratio": round(vol_ratio, 2),
         "From 52W high %": round(from_high, 2),
         "Stop loss": round(stop, 2),
-        "Risk %": round(pct(close, stop), 2),
+        "Risk %": round((close - stop) / close * 100, 2),
+        **swing,
     }
 
 
@@ -443,7 +589,7 @@ def analyse_stocks(daily, sector_table, stock_data, top_n=5, all_sectors=False):
             if df is None:
                 continue
             try:
-                m = analyse_stock(df, daily[sec], bench)
+                m = analyse_stock(df, daily[sec], bench, srow["Quadrant"])
             except Exception as e:  # bad/short data for one stock shouldn't stop the run
                 print(f"  {sym}: skipped ({e})")
                 continue
@@ -647,12 +793,31 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 .note{font-size:12px;color:var(--muted);margin:18px 4px;line-height:1.5}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
   padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
-nav .in{max-width:820px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav .in{max-width:820px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 nav button{background:none;border:0;color:var(--muted);font-size:11.5px;font-weight:600;padding:6px 0;
   display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
 nav button svg{width:23px;height:23px}
 nav button.on{color:var(--accent)}
 .sl{font-size:12px;color:var(--muted);margin-top:10px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card2);border:1px solid var(--line);
+  border-radius:12px;padding:3px;margin-bottom:10px}
+.seg button{border:0;background:none;color:var(--muted);font-weight:700;font-size:14px;padding:9px 0;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+.hrow{display:flex;justify-content:space-between;align-items:baseline}
+.gauge{margin:10px 0}.gauge .lab{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.gbar{position:relative;height:10px;background:var(--card2);border-radius:9px;overflow:visible}
+.gbar i{display:block;height:100%;border-radius:9px}
+.gbar b{position:absolute;left:50%;top:-3px;width:2px;height:16px;background:var(--muted)}
+.on-pill{font-weight:800;padding:4px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
+.on-pill.g{background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)}
+.on-pill.r{background:color-mix(in srgb,var(--neg) 18%,transparent);color:var(--neg)}
+.inp{display:flex;gap:8px}.inp label{flex:1;font-size:12px;color:var(--muted)}
+.inp input,.exit textarea{width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;margin-top:4px;font-family:inherit}
+.exit textarea{min-height:64px;resize:vertical}
+.dim{opacity:.55}
+details.rules summary{cursor:pointer;font-weight:700}
+details.rules li{margin:4px 0;font-size:13.5px}
+.hrow a{color:var(--accent);text-transform:none;letter-spacing:0;font-size:13px;cursor:pointer}
 @media (max-width:480px){.grid{gap:6px}.m{padding:7px 6px}.m b{font-size:13.5px}.m span{font-size:10.5px}
   .tile b{font-size:20px}.tile{padding:10px 8px}.tile span{font-size:11px}}
 @media (min-width:900px){body{font-size:15.5px}}
@@ -671,6 +836,7 @@ nav button.on{color:var(--accent)}
   <section class="view on" id="v-home"></section>
   <section class="view" id="v-sectors"></section>
   <section class="view" id="v-stocks"></section>
+  <section class="view" id="v-signals"></section>
   <section class="view" id="v-chart"></section>
 </main>
 
@@ -678,6 +844,7 @@ nav button.on{color:var(--accent)}
   <button data-v="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-6h6v6"/></svg>Home</button>
   <button data-v="sectors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Sectors</button>
   <button data-v="stocks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Stocks</button>
+  <button data-v="signals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Signals</button>
   <button data-v="chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Chart</button>
 </div></nav>
 
@@ -698,7 +865,8 @@ function sigTag(sig){
   return `<span class="tag ${k}">${esc(txt)}</span>`;
 }
 function setupTag(s){
-  const k = /Breakout|Momentum|Pullback/.test(s)?"g":/Weak/.test(s)?"r":/Overbought/.test(s)?"y":"";
+  const k = /Breakout|breakout|Momentum|Pullback|Near 52W|Weekly uptrend/.test(s)?"g":/Weak|Avoid|below 50/.test(s)?"r":
+            /Overbought|Extended/.test(s)?"y":/Tight base|Building base|Early trend/.test(s)?"b":"";
   return `<span class="tag ${k}">${esc(s)}</span>`;
 }
 function ring(v,c="var(--accent)"){return `<div class="score" style="--v:${v};--c:${c}"><span>${Math.round(v)}</span></div>`}
@@ -708,7 +876,11 @@ function home(){
   const S=D.sectors, cnt=q=>S.filter(s=>s.Quadrant===q).length;
   const by=p=>S.filter(s=>s.Signal.startsWith(p));
   const out=by("OUTPERFORMING"), early=by("LIKELY"), watch=S.filter(s=>/^(Watch|Re-acc)/.test(s.Signal));
-  const best=[...D.stocks].filter(s=>/Breakout|Momentum|Pullback/.test(s.Setup)).sort((a,b)=>b.Score-a.Score).slice(0,6);
+  const uniq=a=>{const seen=new Set();return a.filter(s=>!seen.has(s.Stock)&&seen.add(s.Stock))};
+  const swingTop=uniq([...D.stocks].filter(s=>/Base breakout|Pullback/.test(s["Swing setup"]))
+      .sort((a,b)=>b["Swing score"]-a["Swing score"])).slice(0,3);
+  const posTop=uniq([...D.stocks].filter(s=>!/Avoid/.test(s["Positional setup"]))
+      .sort((a,b)=>b["Positional score"]-a["Positional score"])).slice(0,3);
   const list=(arr,empty)=>arr.length?arr.map(s=>`
     <div class="mini" onclick="openSector('${esc(s.Sector)}')">
       <span class="pill q-${s.Quadrant}">${s.Quadrant}</span>
@@ -721,13 +893,19 @@ function home(){
       <div style="font-size:20px;font-weight:800;margin:4px 0 2px">${out.length} sector${out.length==1?"":"s"} beating Nifty</div>
       <div class="s">${early.length} turning up early · ${watch.length} on watch</div>
     </div>
+    ${D.strat?`<div class="card tap" onclick="show('signals')"><div class="row"><div class="grow"><div class="t">Aaj ke signals</div>
+      <div class="s">Breadth: 200 DMA ${fmt(D.strat.breadth.p200,0)}% · 20 DMA ${fmt(D.strat.breadth.p20,0)}% · ${D.strat.pivot.length} pivot · ${D.strat.pos.length} positional</div></div>
+      <span class="on-pill ${D.strat.pivotOn?'g':'r'}">Pivot ${D.strat.pivotOn?'ON':'OFF'}</span>
+      <span class="on-pill ${D.strat.posOn?'g':'r'}">Pos ${D.strat.posOn?'ON':'OFF'}</span></div></div>`:''}
     <div class="tiles">
       ${["Leading","Improving","Weakening","Lagging"].map(q=>`<div class="tile q-${q}" onclick="goSectors('${q}')"><b>${cnt(q)}</b><span>${q}</span></div>`).join("")}
     </div>
     <h2>Outperforming Nifty now</h2><div class="card">${list(out,"No sector is in the Leading zone this week.")}</div>
     <h2>Likely to outperform next</h2><div class="card">${list(early.concat(watch),"No sector is turning up right now.")}</div>
-    <h2>Best stock setups</h2>
-    ${best.length?best.map(stockCard).join(""):`<div class="card s">No breakout / momentum / pullback setups found.</div>`}
+    <h2 class="hrow">Top swing setups <a onclick="openMode('swing')">See all ›</a></h2>
+    ${swingTop.length?swingTop.map(s=>stockCard(s,"swing",withRanks(D.stocks,"Swing score").get(s))).join(""):`<div class="card s">No breakout or pullback swing setups this week.</div>`}
+    <h2 class="hrow">Top positional picks <a onclick="openMode('positional')">See all ›</a></h2>
+    ${posTop.length?posTop.map(s=>stockCard(s,"positional",withRanks(D.stocks,"Positional score").get(s))).join(""):`<div class="card s">No stocks in a positional uptrend this week.</div>`}
     <p class="note">Generated ${esc(D.generated)}. Technical screen only — not investment advice. Always check the chart before trading.</p>`;
 }
 
@@ -765,55 +943,104 @@ function sectors(){
 }
 
 /* ---------- STOCKS ---------- */
-let stQ="", stSec="All", stSet="All", stTop=true;
+const MODES={
+  overall:{label:"Overall",score:"Score",setup:"Setup",
+    chips:["All","Breakout","Momentum","Pullback","Overbought","Neutral","Weak"]},
+  swing:{label:"Swing",score:"Swing score",setup:"Swing setup",
+    chips:["All","Base breakout","Pullback","Tight base","Extended","No"]},
+  positional:{label:"Positional",score:"Positional score",setup:"Positional setup",
+    chips:["All","Base breakout","Near 52W high","Building base","Weekly uptrend","Early trend","Avoid"]},
+};
+let stQ="", stSec="All", stSet="All", stTop=true, stMode="overall";
 function openSector(name){stSec=name;stSet="All";stQ="";show("stocks")}
-function stockCard(s){
-  return `<div class="card">
-    <div class="row">
-      ${ring(s.Score)}
-      <div class="grow"><div class="t">${esc(s.Stock)}</div><div class="s">${esc(s.Sector)} · #${s["Sector rank"]} in sector</div></div>
+function openMode(m){stMode=m;stSec="All";stSet="All";stQ="";show("stocks")}
+function withRanks(arr,key){
+  const by={};arr.forEach(s=>(by[s.Sector]=by[s.Sector]||[]).push(s));
+  const r=new Map();Object.values(by).forEach(g=>g.sort((a,b)=>b[key]-a[key]).forEach((s,i)=>r.set(s,i+1)));
+  return r;
+}
+const rs=v=>"₹"+fmt(v,v>=1000?0:2);
+const M=(label,val,cls="")=>`<div class="m"><span>${label}</span><b class="${cls}">${val}</b></div>`;
+function stockCard(s,mode="overall",rank){
+  const md=MODES[mode], sc=s[md.score], setup=s[md.setup];
+  rank=rank||s["Sector rank"];
+  const head=`<div class="row">
+      ${ring(sc)}
+      <div class="grow"><div class="t">${esc(s.Stock)}</div><div class="s">${esc(s.Sector)} · #${rank} in sector</div></div>
       <div style="text-align:right"><div class="t">₹${fmt(s.Close)}</div><div class="s ${pc(s["1W %"])}">${sgn(s["1W %"])}% 1W</div></div>
-    </div>
-    <div class="tags">${setupTag(s.Setup)}
+    </div>`;
+  let tags, grid;
+  if(mode==="swing"){
+    tags=`${setupTag(setup)}
+      <span class="tag ${s.Trend==='Downtrend'?'r':/uptrend/i.test(s.Trend)?'g':''}">${esc(s.Trend)}</span>
+      ${s["MACD fresh cross"]==='Yes'?'<span class="tag g">Fresh MACD cross</span>':`<span class="tag ${/^Bullish/.test(s.MACD)?'g':'r'}">MACD ${esc(s.MACD)}</span>`}
+      <span class="tag ${s.Supertrend==='Buy'?'g':'r'}">Supertrend ${s.Supertrend}</span>`;
+    grid=M("vs Sector 1M",sgn(s["RS vs Sector 1M"])+"%",pc(s["RS vs Sector 1M"]))
+      +M("vs Nifty 1M",sgn(s["RS vs Nifty 1M"])+"%",pc(s["RS vs Nifty 1M"]))
+      +M("RSI",fmt(s.RSI,1))
+      +M("Vol today",fmt(s["Vol today x"])+"x",s["Vol today x"]>=1.5?"pos":"")
+      +M("Stop",rs(s["Swing stop"]),"neg")
+      +M("Target 1 (2R)",rs(s["Swing T1"]),"pos")
+      +M("Target 2 (3R)",rs(s["Swing T2"]),"pos")
+      +M("Risk",fmt(s["Swing risk %"],1)+"%");
+  }else if(mode==="positional"){
+    tags=`${setupTag(setup)}
+      <span class="tag ${s["Weekly uptrend"]==='Yes'?'g':'r'}">Weekly uptrend: ${s["Weekly uptrend"]}</span>
+      <span class="tag ${s["200 EMA rising"]==='Yes'?'g':'r'}">200 EMA rising: ${s["200 EMA rising"]}</span>
+      <span class="tag ${/^(OUT|LIKELY)/.test(s["Sector signal"])?'g':'b'}">Sector: ${esc(s["Sector signal"].split(" - ")[0].toLowerCase())}</span>`;
+    grid=M("Mansfield RS",sgn(s["Mansfield RS"]),pc(s["Mansfield RS"]))
+      +M("vs Nifty 6M",sgn(s["RS vs Nifty 6M"])+"%",pc(s["RS vs Nifty 6M"]))
+      +M("52W high",fmt(s["From 52W high %"],1)+"%")
+      +M("ADX",fmt(s.ADX,1),s.ADX>25?"pos":"")
+      +M("Stop",rs(s["Positional stop"]),"neg")
+      +M("Target 1 (2R)",rs(s["Positional T1"]),"pos")
+      +M("Target 2 (3R)",rs(s["Positional T2"]),"pos")
+      +M("Risk",fmt(s["Positional risk %"],1)+"%");
+  }else{
+    tags=`${setupTag(setup)}
       <span class="tag ${s.Trend==='Downtrend'?'r':/uptrend/i.test(s.Trend)?'g':''}">${esc(s.Trend)}</span>
       <span class="tag ${/^Bullish/.test(s.MACD)?'g':'r'}">MACD ${esc(s.MACD)}</span>
       <span class="tag ${s.Supertrend==='Buy'?'g':'r'}">Supertrend ${s.Supertrend}</span>
-      ${s["RS rising"]==='Yes'?'<span class="tag g">RS rising</span>':''}
-    </div>
-    <div class="grid">
-      <div class="m"><span>vs Sector</span><b class="${pc(s["RS vs Sector 3M"])}">${sgn(s["RS vs Sector 3M"])}%</b></div>
-      <div class="m"><span>vs Nifty</span><b class="${pc(s["RS vs Nifty 3M"])}">${sgn(s["RS vs Nifty 3M"])}%</b></div>
-      <div class="m"><span>RSI</span><b>${fmt(s.RSI,1)}</b></div>
-      <div class="m"><span>ADX</span><b>${fmt(s.ADX,1)}</b></div>
-      <div class="m"><span>Volume</span><b class="${s["Vol ratio"]>1.2?'pos':''}">${fmt(s["Vol ratio"])}x</b></div>
-      <div class="m"><span>52W high</span><b>${fmt(s["From 52W high %"],1)}%</b></div>
-      <div class="m"><span>Stop loss</span><b>₹${fmt(s["Stop loss"])}</b></div>
-      <div class="m"><span>Risk</span><b>${fmt(s["Risk %"],1)}%</b></div>
-    </div>
-  </div>`;
+      ${s["RS rising"]==='Yes'?'<span class="tag g">RS rising</span>':''}`;
+    grid=M("vs Sector",sgn(s["RS vs Sector 3M"])+"%",pc(s["RS vs Sector 3M"]))
+      +M("vs Nifty",sgn(s["RS vs Nifty 3M"])+"%",pc(s["RS vs Nifty 3M"]))
+      +M("RSI",fmt(s.RSI,1))+M("ADX",fmt(s.ADX,1))
+      +M("Volume",fmt(s["Vol ratio"])+"x",s["Vol ratio"]>1.2?"pos":"")
+      +M("52W high",fmt(s["From 52W high %"],1)+"%")
+      +M("Stop loss",rs(s["Stop loss"]))+M("Risk",fmt(s["Risk %"],1)+"%");
+  }
+  return `<div class="card">${head}<div class="tags">${tags}</div><div class="grid">${grid}</div></div>`;
 }
+const MODE_NOTE={
+  overall:'"vs Sector / vs Nifty" = 3-month relative return',
+  swing:"2–20 day trades · stop = recent swing low / ATR · targets at 2R and 3R",
+  positional:"1–6 month trades · stop = 4-week low (max 12%) · targets at 2R and 3R",
+};
 function stocks(){
+  const md=MODES[stMode];
   const secs=["All",...new Set(D.stocks.map(s=>s.Sector))];
-  const sets=["All","Breakout","Momentum","Pullback","Overbought","Neutral","Weak"];
-  let arr=D.stocks.filter(s=>(stSec==="All"||s.Sector===stSec)&&(stSet==="All"||s.Setup.includes(stSet))
-      &&(!stQ||s.Stock.toLowerCase().includes(stQ.toLowerCase()))&&(!stTop||s["Sector rank"]<=D.top));
-  arr.sort((a,b)=>b.Score-a.Score);
+  const ranks=withRanks(D.stocks,md.score);
+  let arr=D.stocks.filter(s=>(stSec==="All"||s.Sector===stSec)&&(stSet==="All"||s[md.setup].includes(stSet))
+      &&(!stQ||s.Stock.toLowerCase().includes(stQ.toLowerCase()))&&(!stTop||ranks.get(s)<=D.top));
+  arr.sort((a,b)=>b[md.score]-a[md.score]);
   if(stSec==="All"){const seen=new Set();arr=arr.filter(s=>!seen.has(s.Stock)&&seen.add(s.Stock));}
   $("#v-stocks").innerHTML=`
+    <div class="seg">${Object.entries(MODES).map(([k,m])=>`<button class="${k===stMode?'on':''}" data-mode="${k}">${m.label}</button>`).join("")}</div>
     <div class="search">
       <input id="q" placeholder="Search stock…" value="${esc(stQ)}" autocomplete="off">
       <select id="sec">${secs.map(s=>`<option ${s===stSec?'selected':''}>${esc(s)}</option>`).join("")}</select>
     </div>
     <div class="filters">
       <button class="chip ${stTop?'on':''}" id="top">Top ${D.top} / sector</button>
-      ${sets.map(x=>`<button class="chip ${x===stSet?'on':''}" data-set="${x}">${x}</button>`).join("")}
+      ${md.chips.map(x=>`<button class="chip ${x===stSet?'on':''}" data-set="${esc(x)}">${x==="No"?"No setup":esc(x)}</button>`).join("")}
     </div>
-    <div class="s" style="margin:0 4px 8px">${arr.length} stock${arr.length==1?"":"s"} · "vs Sector / vs Nifty" = 3-month relative return</div>
-    ${arr.length?arr.map(stockCard).join(""):`<div class="empty">${D.stocks.length?"No stocks match these filters.":"No sectors are rotating up, so no stocks were scanned this week."}</div>`}`;
+    <div class="s" style="margin:0 4px 8px">${arr.length} stock${arr.length==1?"":"s"} · ${MODE_NOTE[stMode]}</div>
+    ${arr.length?arr.map(s=>stockCard(s,stMode,ranks.get(s))).join(""):`<div class="empty">${D.stocks.length?"No stocks match these filters.":"No sectors are rotating up, so no stocks were scanned this week."}</div>`}`;
   const q=$("#q"); q.oninput=e=>{stQ=e.target.value;stocks();const n=$("#q");n.focus();n.setSelectionRange(n.value.length,n.value.length)};
   $("#sec").onchange=e=>{stSec=e.target.value;stocks()};
   $("#top").onclick=()=>{stTop=!stTop;stocks()};
   document.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{stSet=b.dataset.set;stocks()});
+  document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{stMode=b.dataset.mode;stSet="All";stocks()});
 }
 
 /* ---------- CHART ---------- */
@@ -831,14 +1058,112 @@ function chart(){
     <p class="note">Sectors usually rotate clockwise: Improving → Leading → Weakening → Lagging. RS-Ratio (x-axis) measures strength vs Nifty 50; RS-Momentum (y-axis) measures whether that strength is rising.</p>`;
 }
 
+/* ---------- SIGNALS ---------- */
+const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},
+          set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+let CAP=Number(LS.get("cap","1000000")), RISK=Number(LS.get("risk","1")), HOLD=LS.get("hold","");
+const inr=v=>"₹"+Math.round(v).toLocaleString("en-IN");
+function sizing(close,stop){
+  const r=close-stop; if(r<=0) return {q:0,v:0};
+  const q=Math.floor(Math.min(CAP*RISK/100/r, CAP*0.15/close)); return {q, v:q*close};
+}
+function gauge(label,val,on){
+  const col=val>=50?"var(--pos)":"var(--neg)";
+  return `<div class="gauge"><div class="lab"><span>${label}</span><b style="color:${col}">${fmt(val,1)}%</b></div>
+    <div class="gbar"><i style="width:${Math.min(100,val)}%;background:${col};opacity:.75"></i><b title="50%"></b></div></div>`;
+}
+function breadthChart(h){
+  if(!h||!h.length) return "";
+  const W=760,H=170,l=34,r=8,t=10,b=22,n=h.length,x=i=>l+i/(n-1)*(W-l-r),y=v=>t+(100-v)/100*(H-t-b);
+  const path=k=>h.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p[k]).toFixed(1)}`).join("");
+  const ticks=h.map((p,i)=>({p,i})).filter(o=>o.i>0&&o.p.d.slice(5,7)!==h.at(o.i-1).d.slice(5,7)&&["01","04","07","10"].includes(o.p.d.slice(5,7)));
+  const MO=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block" role="img" aria-label="Breadth over the last year">
+    ${[0,50,100].map(g=>`<line x1="${l}" x2="${W-r}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" ${g===50?'stroke-dasharray="4 3"':''}/><text x="${l-6}" y="${y(g)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${g}%</text>`).join("")}
+    <path d="${path("p20")}" fill="none" stroke="var(--weak)" stroke-width="1.4" opacity=".8"/>
+    <path d="${path("p200")}" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+    ${ticks.map(o=>`<text x="${x(o.i)}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)">${MO.at(Number(o.p.d.slice(5,7))-1)} ${o.p.d.slice(2,4)}</text>`).join("")}
+  </svg><div class="s" style="margin-top:4px"><b style="color:var(--accent)">━</b> % above 200 DMA &nbsp; <b style="color:var(--weak)">━</b> % above 20 DMA &nbsp; dashed = 50%</div>`;
+}
+function sigCard(x,kind,on){
+  const z=sizing(x.close,x.stop);
+  const top=kind==="pivot"?`<span class="tag g">Pivot high ${fmt(x.ph)} toda</span>`:`<span class="tag g">${esc(x.setup)}</span><span class="tag b">Score ${x.score}</span>`;
+  return `<div class="card ${on?'':'dim'}">
+    <div class="row"><div class="grow"><div class="t">${esc(x.s)}</div><div class="s">${esc(x.ind)} · 3M RS ${sgn(x.rs,1)}%</div></div>
+      <div style="text-align:right"><div class="t">₹${fmt(x.close)}</div><div class="s">aaj ka close</div></div></div>
+    <div class="tags">${top}<span class="tag">50 EMA ₹${fmt(x.e50)}</span></div>
+    <div class="grid">
+      <div class="m"><span>Entry</span><b>Kal open</b></div>
+      <div class="m"><span>Stop loss</span><b class="neg">₹${fmt(x.stop)}</b></div>
+      <div class="m"><span>Risk</span><b>${fmt(x.risk,1)}%</b></div>
+      <div class="m"><span>Qty (${fmt(RISK,1)}% risk)</span><b>${z.q} · ${inr(z.v)}</b></div>
+    </div></div>`;
+}
+function exitList(){
+  const X=D.strat.exits, syms=HOLD.toUpperCase().split(/[\s,]+/).filter(Boolean);
+  if(!syms.length) return `<div class="s">Apne stocks ke NSE symbol likhiye (jaise TCS, INFY). Ye sirf aapke phone/browser mein save rehte hain.</div>`;
+  return syms.map(s=>{const v=X[s]; if(!v) return `<div class="mini"><b class="grow">${esc(s)}</b><span class="s">data nahi mila</span></div>`;
+    const ex=v[0]<v[1];
+    return `<div class="mini"><div class="grow"><b>${esc(s)}</b><div class="s">Close ₹${fmt(v[0])} · 50 EMA ₹${fmt(v[1])}</div></div>
+      <span class="on-pill ${ex?'r':'g'}">${ex?'Exit: kal open par becho':'Hold'}</span></div>`}).join("");
+}
+function signals(){
+  const S=D.strat;
+  if(!S){ $("#v-signals").innerHTML=`<div class="empty">Aaj ke signals nahi bane (data download nahi hua). Agle update mein aayenge.</div>`; return; }
+  const B=S.breadth;
+  $("#v-signals").innerHTML=`
+    <div class="card">
+      <div class="row"><div class="grow"><div class="t">Market breadth</div><div class="s">Nifty 500 (${S.n} stocks) · ${esc(S.asOf)}</div></div></div>
+      ${gauge("% stocks above 20 DMA",B.p20)}${gauge("% stocks above 50 DMA",B.p50)}${gauge("% stocks above 200 DMA",B.p200)}
+      <div class="tags" style="margin-top:12px">
+        <span class="on-pill ${S.pivotOn?'g':'r'}">Pivot breakout: ${S.pivotOn?'ON':'OFF'}</span>
+        <span class="on-pill ${S.posOn?'g':'r'}">Positional: ${S.posOn?'ON':'OFF'}</span>
+      </div>
+      <div class="s" style="margin-top:8px">Pivot ke liye 200 DMA ≥ 50%, Positional ke liye 20 DMA ≥ 50% chahiye. OFF ho to naye trade nahi; purane apne exit se chalte hain.</div>
+    </div>
+    <div class="card">${breadthChart(S.hist)}</div>
+    <h2>Position size</h2>
+    <div class="card inp">
+      <label>Capital (₹)<input id="cap" type="number" inputmode="numeric" value="${CAP}"></label>
+      <label>Risk per trade (%)<input id="risk" type="number" step="0.25" inputmode="decimal" value="${RISK}"></label>
+    </div>
+    <h2>Pivot breakout signals (${S.pivot.length})</h2>
+    ${S.pivotOn?'':'<div class="card s">Filter OFF hai: ye signals sirf jaankari ke liye hain, rules ke hisaab se naya trade nahi.</div>'}
+    ${S.pivot.length?S.pivot.map(x=>sigCard(x,"pivot",S.pivotOn)).join(""):'<div class="card s">Aaj koi pivot breakout nahi.</div>'}
+    <h2>Positional signals (${S.pos.length})</h2>
+    ${S.posOn?'':'<div class="card s">Filter OFF hai: ye signals sirf jaankari ke liye hain, rules ke hisaab se naya trade nahi.</div>'}
+    ${S.pos.length?S.pos.map(x=>sigCard(x,"pos",S.posOn)).join(""):'<div class="card s">Aaj koi positional signal nahi.</div>'}
+    <h2>Watchlist: pivot high se 3% neeche (${S.watch.length})</h2>
+    <div class="card">${S.watch.length?S.watch.map(w=>`<div class="mini"><div class="grow"><b>${esc(w.s)}</b><div class="s">${esc(w.ind)}</div></div>
+      <div style="text-align:right"><div>₹${fmt(w.close)} → ₹${fmt(w.ph)}</div><div class="s">${fmt(w.dist,1)}% door · RS ${sgn(w.rs,1)}%</div></div></div>`).join(""):'<div class="s">Koi stock breakout ke kareeb nahi.</div>'}</div>
+    <h2>Exit check (mere holdings)</h2>
+    <div class="card exit"><textarea id="hold" placeholder="TCS, INFY, CUPID">${esc(HOLD)}</textarea><div id="exitlist" style="margin-top:8px">${exitList()}</div></div>
+    <h2>Rules</h2>
+    <div class="card"><details class="rules"><summary>Pivot breakout (11 saal: 21.9% saalana, max DD −23.4%)</summary><ol>
+      <li>Market: Nifty 500 ke ≥ 50% stocks 200 DMA ke upar.</li>
+      <li>5-bar pivots: aakhri pivot high pichle se upar, aakhri pivot low pichle se upar.</li>
+      <li>Close aakhri pivot high ke upar (har pivot par ek baar) → kal open par kharido.</li>
+      <li>Stop: aakhri pivot low −0.5% (entry se 3–12%).</li>
+      <li>Exit: close 50 EMA ke neeche → agle din open; ya stop.</li></ol></details>
+    <details class="rules" style="margin-top:8px"><summary>Positional (11 saal: 17.4% saalana, max DD −21.8%)</summary><ol>
+      <li>Market: Nifty 500 ke ≥ 50% stocks 20 DMA ke upar.</li>
+      <li>Industry Leading/Improving; positional score ≥ 75; setup Base breakout / Near 52W high / Weekly uptrend.</li>
+      <li>Kal open par kharido. Stop: 20-din low (max 12%; 3% se kam ho to 5%).</li>
+      <li>Exit: close 50 EMA ke neeche → agle din open; ya stop.</li></ol></details>
+    <p class="note">Sab trades: 1% risk, ek stock max 15% capital, max 10 stocks, ek industry max 3. Backtest 2016–2026, sirf aaj ke Nifty 500 stocks par (survivorship bias) — asli returns kam ho sakte hain. Investment advice nahi.</p></div>`;
+  const upd=()=>{CAP=Number($("#cap").value)||0;RISK=Number($("#risk").value)||0;LS.set("cap",CAP);LS.set("risk",RISK)};
+  $("#cap").onchange=()=>{upd();signals()}; $("#risk").onchange=()=>{upd();signals()};
+  $("#hold").oninput=e=>{HOLD=e.target.value;LS.set("hold",HOLD);$("#exitlist").innerHTML=exitList()};
+}
+
 /* ---------- NAV ---------- */
-const R={home,sectors,stocks,chart};
+const R={home,sectors,stocks,chart,signals};
 function show(v){
   document.querySelectorAll(".view").forEach(e=>e.classList.toggle("on",e.id==="v-"+v));
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   R[v](); window.scrollTo(0,0);
 }
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{if(b.dataset.v==="stocks"){stSec="All";} if(b.dataset.v==="sectors")secQ="All"; show(b.dataset.v)});
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{if(b.dataset.v==="stocks"){stSec="All";stSet="All";} if(b.dataset.v==="sectors")secQ="All"; show(b.dataset.v)});
 $("#asof").textContent="Data as of "+D.asOf;
 (function(){
   const root=document.documentElement;
@@ -854,7 +1179,141 @@ home();
 </body></html>"""
 
 
-def html_report(table, fig, as_of, full_stocks=None, top_n=5):
+# ----------------------------------------------------------------------------- daily strategy signals
+UNIVERSE_FILE = "nifty500_list.csv"
+NIFTY500_URL = "https://www.niftyindices.com/IndexConstituent/ind_nifty500list.csv"
+POS_SETUPS = ("Base breakout", "Near 52W high", "Weekly uptrend")
+
+
+def load_universe():
+    """symbol -> industry for the Nifty 500 (repo file first, then niftyindices.com, then built-in lists)."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for f in (UNIVERSE_FILE, os.path.join(here, UNIVERSE_FILE)):
+        if os.path.exists(f):
+            u = pd.read_csv(f)
+            return dict(zip(u.symbol, u.industry))
+    try:
+        import requests
+        r = requests.get(NIFTY500_URL, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+        r.raise_for_status()
+        u = pd.read_csv(io.StringIO(r.text))
+        return dict(zip(u["Symbol"], u["Industry"]))
+    except Exception as e:  # last resort: the hand-made sector lists
+        print(f"  Nifty 500 list not found ({e}); using built-in sector lists")
+        return {s: sec for sec, syms in SECTOR_STOCKS.items() for s in syms}
+
+
+def ew_index(closes):
+    r = closes.pct_change().clip(-0.5, 0.5)
+    return 100 * (1 + r.mean(axis=1).fillna(0)).cumprod()
+
+
+def pivot_state(h, l, c, n=5):
+    """5-bar structure pivots, confirmed n bars later (same as the backtest).
+    Returns today's break-of-structure flag, the 'near breakout' flag and the levels."""
+    h, l, c = h.values, l.values, c.values
+    phs, pls, used, bos_today = [], [], None, False
+    for t in range(len(c)):
+        i = t - n
+        if i - n >= 0:
+            wh, wl = h[i - n:t + 1], l[i - n:t + 1]
+            if h[i] == wh.max() and (wh == h[i]).sum() == 1:
+                phs.append(h[i])
+            if l[i] == wl.min() and (wl == l[i]).sum() == 1:
+                pls.append(l[i])
+        bos_today = False
+        if len(phs) >= 2 and len(pls) >= 2:
+            ph = phs[-1]
+            if pls[-1] > pls[-2] and phs[-1] > phs[-2] and c[t] > ph and used != ph:
+                used, bos_today = ph, True
+    if len(phs) < 2 or len(pls) < 2:
+        return None
+    ph, pl, close = phs[-1], pls[-1], c[-1]
+    uptrend = phs[-1] > phs[-2] and pls[-1] > pls[-2]
+    stop = max(pl * 0.995, close * 0.88)
+    if close - stop < close * 0.03:
+        stop = close * 0.97
+    return {"bos": bos_today, "near": bool(uptrend and not bos_today and ph * 0.97 <= close <= ph),
+            "uptrend": bool(uptrend), "ph": ph, "pl": pl, "stop": stop}
+
+
+def strategy_signals(period="2y"):
+    """Daily screen for the two back-tested strategies on the Nifty 500."""
+    uni = load_universe()
+    print(f"\nDaily strategy screen: {len(uni)} Nifty 500 stocks")
+    data = fetch_stocks(list(uni), period)
+    if len(data) < 50:
+        print("  too few stocks downloaded - strategy screen skipped")
+        return None
+    closes = pd.DataFrame({s: d["Close"] for s, d in data.items()}).sort_index()
+    bench = ew_index(closes)
+
+    def pct_above(n):
+        sma = closes.rolling(n).mean()
+        return (closes > sma).sum(axis=1) / sma.notna().sum(axis=1) * 100
+
+    p20, p50, p200 = pct_above(20), pct_above(50), pct_above(200)
+
+    # industry rotation on equal-weight industry indices (as in the backtest)
+    groups = {}
+    for s in closes.columns:
+        groups.setdefault(uni.get(s, "Other"), []).append(s)
+    ind_idx = {k: ew_index(closes[v]) for k, v in groups.items() if len(v) >= 3}
+    daily = pd.DataFrame(ind_idx)
+    daily[BENCHMARK[0]] = bench
+    itab, _, _ = analyse(daily)
+    iq = itab.set_index("Sector")
+    scan_ind = {k for k, r in iq.iterrows() if r["Signal"].startswith(SCAN_SIGNALS)}
+
+    piv, watch, pos, exits = [], [], [], {}
+    for sym, df in data.items():
+        try:
+            c, h, l = df["Close"], df["High"], df["Low"]
+            e50 = ema(c, 50).iloc[-1]
+            exits[sym] = [round(float(c.iloc[-1]), 2), round(float(e50), 2)]
+            b = bench.reindex(c.index).ffill()
+            rs3m = pct(c.iloc[-1], c.iloc[-64]) - pct(b.iloc[-1], b.iloc[-64])
+            ind = uni.get(sym, "Other")
+            ps = pivot_state(h, l, c)
+            close = float(c.iloc[-1])
+            if ps and ps["bos"]:
+                piv.append({"s": sym, "ind": ind, "close": round(close, 2), "ph": round(ps["ph"], 2),
+                            "stop": round(ps["stop"], 2), "risk": round((close - ps["stop"]) / close * 100, 1),
+                            "rs": round(rs3m, 1), "e50": round(float(e50), 2)})
+            elif ps and ps["near"]:
+                watch.append({"s": sym, "ind": ind, "close": round(close, 2), "ph": round(ps["ph"], 2),
+                              "dist": round((ps["ph"] / close - 1) * 100, 1), "rs": round(rs3m, 1)})
+            if ind in scan_ind and ind in ind_idx:
+                m = analyse_stock(df, ind_idx[ind], bench, iq.loc[ind, "Quadrant"])
+                if m["Positional score"] >= 75 and m["Positional setup"] in POS_SETUPS:
+                    stop = m["Positional stop"]
+                    pos.append({"s": sym, "ind": ind, "close": round(close, 2), "score": m["Positional score"],
+                                "setup": m["Positional setup"], "stop": round(stop, 2),
+                                "risk": round((close - stop) / close * 100, 1), "rs": round(rs3m, 1),
+                                "e50": round(float(e50), 2)})
+        except Exception as e:
+            print(f"  {sym}: skipped ({e})")
+    piv.sort(key=lambda x: -x["rs"])
+    pos.sort(key=lambda x: (-x["score"], -x["rs"]))
+    watch.sort(key=lambda x: x["dist"])
+    hist = pd.DataFrame({"p20": p20, "p50": p50, "p200": p200}).dropna().tail(260)
+    out = {
+        "asOf": f"{closes.index[-1]:%d %b %Y}",
+        "n": int(closes.shape[1]),
+        "breadth": {"p20": round(float(p20.iloc[-1]), 1), "p50": round(float(p50.iloc[-1]), 1),
+                    "p200": round(float(p200.iloc[-1]), 1)},
+        "hist": [{"d": f"{d:%Y-%m-%d}", "p20": round(r.p20, 1), "p50": round(r.p50, 1), "p200": round(r.p200, 1)}
+                 for d, r in hist.iterrows()],
+        "pivotOn": bool(p200.iloc[-1] >= 50), "posOn": bool(p20.iloc[-1] >= 50),
+        "pivot": piv, "pos": pos, "watch": watch[:40], "exits": exits,
+        "industries": [{"ind": k, "q": r["Quadrant"], "sig": r["Signal"]} for k, r in iq.iterrows()],
+    }
+    print(f"  breadth 20/50/200 DMA: {out['breadth']}  | pivot signals {len(piv)} ({'ON' if out['pivotOn'] else 'OFF'})"
+          f" | positional signals {len(pos)} ({'ON' if out['posOn'] else 'OFF'}) | watchlist {len(watch)}")
+    return out
+
+
+def html_report(table, fig, as_of, full_stocks=None, top_n=5, strat=None):
     import json
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=110)
@@ -866,6 +1325,7 @@ def html_report(table, fig, as_of, full_stocks=None, top_n=5):
         "sectors": json.loads(table.to_json(orient="records")),
         "stocks": json.loads(stocks.to_json(orient="records")) if not stocks.empty else [],
         "chart": base64.b64encode(buf.getvalue()).decode(),
+        "strat": strat,
     }
     payload = json.dumps(data).replace("</", "<\\/")
     return APP_TEMPLATE.replace("__DATA__", payload)
@@ -882,6 +1342,7 @@ def main():
     ap.add_argument("--top", type=int, default=5, help="top stocks to show per sector (default 5)")
     ap.add_argument("--all-sectors", action="store_true", help="scan stocks of every sector, not only rotating ones")
     ap.add_argument("--no-stocks", action="store_true", help="sector rotation only, skip stock scan")
+    ap.add_argument("--no-signals", action="store_true", help="skip the daily Nifty 500 strategy screen")
     args = ap.parse_args()
 
     daily = fetch_prices(args.period)
@@ -903,8 +1364,8 @@ def main():
             print(f"\nTop {args.top} stocks in rotating sectors\n")
             for sec, grp in top_stocks.groupby("Sector", sort=False):
                 print(f"--- {sec}  [{grp['Sector signal'].iloc[0]}]")
-                print(grp[["Stock", "Score", "Setup", "Close", "RS vs Sector 3M", "Trend",
-                           "RSI", "MACD", "ADX", "Supertrend", "Vol ratio", "Stop loss"]]
+                print(grp[["Stock", "Score", "Setup", "Close", "Swing score", "Swing setup",
+                           "Positional score", "Positional setup", "RSI", "ADX", "Supertrend"]]
                       .to_string(index=False))
                 print()
         else:
@@ -916,7 +1377,17 @@ def main():
     table.to_csv(os.path.join(args.out, "sector_rotation.csv"))
     if full_stocks is not None and not full_stocks.empty:
         full_stocks.to_csv(os.path.join(args.out, "stock_screener.csv"), index=False)
-    page = html_report(table, fig, as_of, full_stocks, args.top)
+    strat = None
+    if not args.no_signals:
+        try:
+            strat = strategy_signals(args.period)
+        except Exception as e:      # the rest of the app still builds if this fails
+            print(f"Strategy screen failed: {e}")
+        if strat:
+            with open(os.path.join(args.out, "signals.json"), "w", encoding="utf-8") as f:
+                import json
+                json.dump(strat, f)
+    page = html_report(table, fig, as_of, full_stocks, args.top, strat)
     for name in ("sector_rotation_report.html", "index.html"):
         with open(os.path.join(args.out, name), "w", encoding="utf-8") as f:
             f.write(page)
