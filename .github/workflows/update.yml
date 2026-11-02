@@ -2,7 +2,7 @@ name: Update sector rotation website
 
 on:
   schedule:
-    - cron: "30 4 * * 6"     # every Saturday 10:00 AM IST (04:30 UTC)
+           - cron: "0 13 * * 1-5"   # Mon-Fri 6:30 PM IST (13:00 UTC)
   workflow_dispatch:          # adds a "Run workflow" button for manual updates
 
 permissions:
