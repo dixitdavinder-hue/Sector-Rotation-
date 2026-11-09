@@ -1,0 +1,79 @@
+{
+ "cash": 115359.3141,
+ "start_capital": 500000,
+ "positions": {
+  "ATHERENERG": {
+   "qty": 25,
+   "entry": 1818.0,
+   "stop": 1619.2,
+   "entry_date": "2026-11-05",
+   "industry": "Automobile and Auto Components"
+  },
+  "ENGINERSIN": {
+   "qty": 126,
+   "entry": 304.2,
+   "stop": 264.75,
+   "entry_date": "2026-11-05",
+   "industry": "Construction"
+  },
+  "GLENMARK": {
+   "qty": 14,
+   "entry": 2538.0,
+   "stop": 2204.14,
+   "entry_date": "2026-11-05",
+   "industry": "Healthcare"
+  },
+  "LAURUSLABS": {
+   "qty": 17,
+   "entry": 2328.3,
+   "stop": 2044.94,
+   "entry_date": "2026-11-05",
+   "industry": "Healthcare"
+  },
+  "NAVINFLUOR": {
+   "qty": 4,
+   "entry": 8890.0,
+   "stop": 7730.8,
+   "entry_date": "2026-11-05",
+   "industry": "Chemicals"
+  },
+  "PPLPHARMA": {
+   "qty": 158,
+   "entry": 240.8,
+   "stop": 209.23,
+   "entry_date": "2026-11-05",
+   "industry": "Healthcare"
+  },
+  "SONACOMS": {
+   "qty": 44,
+   "entry": 900.0,
+   "stop": 786.46,
+   "entry_date": "2026-11-05",
+   "industry": "Automobile and Auto Components"
+  },
+  "TECHM": {
+   "qty": 20,
+   "entry": 1814.0,
+   "stop": 1569.04,
+   "entry_date": "2026-11-05",
+   "industry": "Information Technology"
+  },
+  "TVSMOTOR": {
+   "qty": 8,
+   "entry": 4390.0,
+   "stop": 3811.46,
+   "entry_date": "2026-11-05",
+   "industry": "Automobile and Auto Components"
+  },
+  "WELSPUNLIV": {
+   "qty": 152,
+   "entry": 265.62,
+   "stop": 232.82,
+   "entry_date": "2026-11-05",
+   "industry": "Textiles"
+  }
+ },
+ "pending_buys": [],
+ "pending_sells": {},
+ "last_date": "2026-11-09"
+}

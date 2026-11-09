@@ -793,7 +793,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 .note{font-size:12px;color:var(--muted);margin:18px 4px;line-height:1.5}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
   padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
-nav .in{max-width:820px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav .in{max-width:820px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
 nav button{background:none;border:0;color:var(--muted);font-size:11.5px;font-weight:600;padding:6px 0;
   display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
 nav button svg{width:23px;height:23px}
@@ -811,6 +811,12 @@ nav button.on{color:var(--accent)}
 .on-pill{font-weight:800;padding:4px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
 .on-pill.g{background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)}
 .on-pill.r{background:color-mix(in srgb,var(--neg) 18%,transparent);color:var(--neg)}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.pgrid div{background:color-mix(in srgb,var(--line) 35%,transparent);border-radius:10px;padding:8px}
+.pgrid span{display:block;font-size:11.5px;color:var(--muted)}.pgrid b{font-size:14px}
+.pbar{height:6px;border-radius:4px;background:var(--line);margin-top:10px;position:relative;overflow:hidden}
+.pbar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.big{font-size:26px;font-weight:800;letter-spacing:-.5px}
 .inp{display:flex;gap:8px}.inp label{flex:1;font-size:12px;color:var(--muted)}
 .inp input,.exit textarea{width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;margin-top:4px;font-family:inherit}
 .exit textarea{min-height:64px;resize:vertical}
@@ -838,6 +844,7 @@ details.rules li{margin:4px 0;font-size:13.5px}
   <section class="view" id="v-stocks"></section>
   <section class="view" id="v-signals"></section>
   <section class="view" id="v-chart"></section>
+  <section class="view" id="v-positions"></section>
 </main>
 
 <nav><div class="in">
@@ -846,6 +853,7 @@ details.rules li{margin:4px 0;font-size:13.5px}
   <button data-v="stocks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Stocks</button>
   <button data-v="signals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Signals</button>
   <button data-v="chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Chart</button>
+  <button data-v="positions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>Positions</button>
 </div></nav>
 
 <script>
@@ -1087,7 +1095,8 @@ function breadthChart(h){
 }
 function sigCard(x,kind,on){
   const z=sizing(x.close,x.stop);
-  const top=kind==="pivot"?`<span class="tag g">Pivot high ${fmt(x.ph)} toda</span>`:`<span class="tag g">${esc(x.setup)}</span><span class="tag b">Score ${x.score}</span>`;
+  if(kind==="pivot"&&x.tt===false) on=false;
+  const top=kind==="pivot"?`<span class="tag g">Pivot high ${fmt(x.ph)} toda</span>${x.tt===false?'<span class="tag r">Trend Template ✗ (trade nahi)</span>':'<span class="tag g">Trend Template ✓</span>'}`:`<span class="tag g">${esc(x.setup)}</span><span class="tag b">Score ${x.score}</span>`;
   return `<div class="card ${on?'':'dim'}">
     <div class="row"><div class="grow"><div class="t">${esc(x.s)}</div><div class="s">${esc(x.ind)} · 3M RS ${sgn(x.rs,1)}%</div></div>
       <div style="text-align:right"><div class="t">₹${fmt(x.close)}</div><div class="s">aaj ka close</div></div></div>
@@ -1139,8 +1148,9 @@ function signals(){
     <h2>Exit check (mere holdings)</h2>
     <div class="card exit"><textarea id="hold" placeholder="TCS, INFY, CUPID">${esc(HOLD)}</textarea><div id="exitlist" style="margin-top:8px">${exitList()}</div></div>
     <h2>Rules</h2>
-    <div class="card"><details class="rules"><summary>Pivot breakout (11 saal: 21.9% saalana, max DD −23.4%)</summary><ol>
+    <div class="card"><details class="rules"><summary>Pivot breakout + Trend Template</summary><ol>
       <li>Market: Nifty 500 ke ≥ 50% stocks 200 DMA ke upar.</li>
+      <li>Stock Trend Template poora kare: close &gt; 50/150/200 SMA, 50 &gt; 150 &gt; 200, 200 SMA 1 mahine se upar, 52W high ke 25% ke andar, 52W low se 30%+ upar.</li>
       <li>5-bar pivots: aakhri pivot high pichle se upar, aakhri pivot low pichle se upar.</li>
       <li>Close aakhri pivot high ke upar (har pivot par ek baar) → kal open par kharido.</li>
       <li>Stop: aakhri pivot low −0.5% (entry se 3–12%).</li>
@@ -1156,8 +1166,76 @@ function signals(){
   $("#hold").oninput=e=>{HOLD=e.target.value;LS.set("hold",HOLD);$("#exitlist").innerHTML=exitList()};
 }
 
+/* ---------- POSITIONS ---------- */
+let POS=null, posBook=0;
+const rs=v=>v==null?'–':(v>=0?'+':'−')+'₹'+fmt(Math.abs(v),0);
+function spark(c){
+  if(!c||c.length<2) return "";
+  const v=c.map(x=>x[1]), lo=Math.min(...v), hi=Math.max(...v), w=300, h=60, r=(hi-lo)||1;
+  const pts=v.map((y,i)=>`${(i/(v.length-1)*w).toFixed(1)},${(h-4-(y-lo)/r*(h-8)).toFixed(1)}`).join(" ");
+  const up=v[v.length-1]>=v[0];
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:60px;margin-top:8px"><polyline fill="none" stroke="var(--${up?'pos':'neg'})" stroke-width="2.5" points="${pts}"/></svg>`;
+}
+function posCard(p){
+  const ex=p.exit, lo=Math.min(p.stop,p.entry,p.now), hi=Math.max(p.entry,p.now)*1.05, r=hi-lo||1;
+  const x=v=>((v-lo)/r*100).toFixed(1);
+  const dStop=(p.now/p.stop-1)*100;
+  return `<div class="card">
+    <div class="row"><div class="grow"><div class="t">${esc(p.s)}</div><div class="s">${esc(p.ind||"")} · entry ${esc(p.date)}</div></div>
+      <span class="on-pill ${ex?'r':'g'}">${ex?'EXIT kal open':'HOLD'}</span></div>
+    <div class="row" style="margin-top:8px;align-items:flex-end"><div class="grow"><span class="big ${pc(p.ret)}">${sgn(p.ret,1)}%</span>
+      <span class="s ${pc(p.pnl)}"> ${rs(p.pnl)}</span></div><div style="text-align:right"><div class="s">Abhi</div><b>₹${fmt(p.now)}</b></div></div>
+    <div class="pbar"><i style="left:0;width:${x(p.stop)}%;background:var(--neg);opacity:.5"></i>
+      <i style="left:${Math.min(x(p.entry),x(p.now))}%;width:${Math.abs(x(p.now)-x(p.entry))}%;background:var(--${p.now>=p.entry?'pos':'neg'})"></i></div>
+    <div class="pgrid"><div><span>Qty</span><b>${p.qty}</b></div><div><span>Entry</span><b>₹${fmt(p.entry)}</b></div>
+      <div><span>Value</span><b>₹${fmt(p.qty*p.now,0)}</b></div>
+      <div><span>Stop loss</span><b>₹${fmt(p.stop)}</b></div><div><span>Stop se door</span><b>${fmt(dStop,1)}%</b></div>
+      <div><span>50 EMA</span><b>₹${fmt(p.ema)}</b></div></div>
+    ${ex?`<div class="s" style="margin-top:8px;color:var(--neg)">Exit signal: ${esc(ex)} → kal open par sell</div>`:''}
+  </div>`;
+}
+function posRender(){
+  const P=POS, el=$("#v-positions");
+  const B=P.books[posBook]||P.books[0];
+  const exits=P.books.flatMap(b=>b.open.filter(p=>p.exit).map(p=>({...p,book:b.label})));
+  const buys=P.books.flatMap(b=>(P.on[b.key]?b.buys:[]).map(o=>({...o,book:b.label})));
+  el.innerHTML=`
+  <div class="card"><div class="row"><div class="grow"><div class="t">Portfolio</div><div class="s">App ke rules se apne-aap chalta hai · ${esc(P.asOf)} close</div></div></div>
+    <div class="row" style="margin-top:6px;align-items:flex-end"><div class="grow"><div class="big">₹${fmt(P.total.equity,0)}</div>
+      <div class="s">₹${fmt(P.total.start,0)} se shuru</div></div><span class="big ${pc(P.total.ret)}">${sgn(P.total.ret,2)}%</span></div>
+    <div class="pgrid">${P.books.map(b=>`<div><span>${esc(b.label)}</span><b class="${pc(b.ret)}">${sgn(b.ret,1)}%</b></div>`).join("")}
+      <div><span>Open positions</span><b>${P.books.reduce((a,b)=>a+b.open.length,0)}</b></div></div></div>
+  <h2>Kal ke orders (${exits.length+buys.length})</h2>
+  <div class="card">${exits.length+buys.length?[
+    ...exits.map(p=>`<div class="mini"><span class="on-pill r">SELL</span><div class="grow"><b>${esc(p.s)}</b><div class="s">${esc(p.book)} · ${p.qty} qty · ${esc(p.exit)}</div></div><span class="s">open par</span></div>`),
+    ...buys.map(o=>`<div class="mini"><span class="on-pill g">BUY</span><div class="grow"><b>${esc(o.s)}</b><div class="s">${esc(o.book)} · ~${o.qty} qty · stop ₹${fmt(o.stop)} · ${esc(o.info)}</div></div><span class="s">close ₹${fmt(o.price)}</span></div>`)
+  ].join(""):'<div class="s">Kal koi entry ya exit nahi.</div>'}</div>
+  <div class="seg" style="margin-top:14px;grid-template-columns:repeat(${P.books.length},1fr)">${P.books.map((b,i)=>`<button class="${i===posBook?'on':''}" data-pb="${i}">${esc(b.label)} (${b.open.length})</button>`).join("")}</div>
+  <div class="card"><div class="row"><div class="grow"><div class="t">${esc(B.label)}</div>
+      <div class="s">Filter ${P.on[B.key]?'ON: naye trade ban sakte hain':'OFF: naye trade nahi, purane apne exit se chalenge'}</div></div>
+      <span class="on-pill ${P.on[B.key]?'g':'r'}">${P.on[B.key]?'ON':'OFF'}</span></div>
+    <div class="pgrid"><div><span>Equity</span><b>₹${fmt(B.equity,0)}</b></div><div><span>Cash</span><b>₹${fmt(B.cash,0)}</b></div>
+      <div><span>Return</span><b class="${pc(B.ret)}">${sgn(B.ret,2)}%</b></div></div>${spark(B.curve)}</div>
+  <h2>Open positions (${B.open.length})</h2>
+  ${B.open.length?B.open.slice().sort((a,b)=>b.ret-a.ret).map(posCard).join(""):'<div class="card s">Abhi koi open position nahi.</div>'}
+  <h2>Closed trades (${B.closed.length})</h2>
+  <div class="card">${B.closed.length?B.closed.map(t=>`<div class="mini"><div class="grow"><b>${esc(t.symbol)}</b>
+      <div class="s">${esc(t.entry_date)} → ${esc(t.exit_date)} · ₹${fmt(t.entry)} → ₹${fmt(t.exit)} · ${esc(t.reason)}</div></div>
+      <div style="text-align:right"><b class="${pc(t.ret_pct)}">${sgn(t.ret_pct,1)}%</b><div class="s ${pc(t.pnl)}">${rs(t.pnl)}</div></div></div>`).join(""):'<div class="s">Abhi tak koi trade close nahi hua.</div>'}</div>
+  <p class="note">Rules: 1% risk per trade, max 10 stocks, ek stock max 15%, cost 0.2% har side. Signal aaj close par → entry kal open par. Exit: stop loss ya close 50 EMA ke neeche. Model portfolio hai, investment advice nahi.</p>`;
+  el.querySelectorAll("[data-pb]").forEach(b=>b.onclick=()=>{posBook=+b.dataset.pb;posRender()});
+}
+function positions(){
+  const el=$("#v-positions");
+  if(POS){posRender();return}
+  el.innerHTML='<div class="empty">Positions load ho rahi hain…</div>';
+  fetch("positions/positions.json?t="+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()})
+    .then(j=>{POS=j;posBook=Math.max(0,j.books.findIndex(b=>b.open.length));posRender()})
+    .catch(()=>{el.innerHTML='<div class="empty">Positions abhi available nahi. Agle update ke baad dikhengi.</div>'});
+}
+
 /* ---------- NAV ---------- */
-const R={home,sectors,stocks,chart,signals};
+const R={home,sectors,stocks,chart,signals,positions};
 function show(v){
   document.querySelectorAll(".view").forEach(e=>e.classList.toggle("on",e.id==="v-"+v));
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
@@ -1237,6 +1315,18 @@ def pivot_state(h, l, c, n=5):
             "uptrend": bool(uptrend), "ph": ph, "pl": pl, "stop": stop}
 
 
+def trend_template(h, l, c):
+    """Minervini trend template on daily data (all 5 points). Needs ~270 days of history."""
+    if len(c) < 270:
+        return False
+    s50, s150, s200 = (c.rolling(n).mean() for n in (50, 150, 200))
+    cl = c.iloc[-1]
+    lo52, hi52 = l.iloc[-252:].min(), h.iloc[-252:].max()
+    return bool(cl > s50.iloc[-1] and cl > s150.iloc[-1] and cl > s200.iloc[-1]
+                and s50.iloc[-1] > s150.iloc[-1] > s200.iloc[-1] and s200.iloc[-1] > s200.iloc[-22]
+                and cl >= 0.75 * hi52 and cl >= 1.30 * lo52)
+
+
 def strategy_signals(period="2y"):
     """Daily screen for the two back-tested strategies on the Nifty 500."""
     uni = load_universe()
@@ -1279,7 +1369,8 @@ def strategy_signals(period="2y"):
             if ps and ps["bos"]:
                 piv.append({"s": sym, "ind": ind, "close": round(close, 2), "ph": round(ps["ph"], 2),
                             "stop": round(ps["stop"], 2), "risk": round((close - ps["stop"]) / close * 100, 1),
-                            "rs": round(rs3m, 1), "e50": round(float(e50), 2)})
+                            "rs": round(rs3m, 1), "e50": round(float(e50), 2),
+                            "tt": trend_template(h, l, c)})
             elif ps and ps["near"]:
                 watch.append({"s": sym, "ind": ind, "close": round(close, 2), "ph": round(ps["ph"], 2),
                               "dist": round((ps["ph"] / close - 1) * 100, 1), "rs": round(rs3m, 1)})
@@ -1293,7 +1384,7 @@ def strategy_signals(period="2y"):
                                 "e50": round(float(e50), 2)})
         except Exception as e:
             print(f"  {sym}: skipped ({e})")
-    piv.sort(key=lambda x: -x["rs"])
+    piv.sort(key=lambda x: (not x["tt"], -x["rs"]))
     pos.sort(key=lambda x: (-x["score"], -x["rs"]))
     watch.sort(key=lambda x: x["dist"])
     hist = pd.DataFrame({"p20": p20, "p50": p50, "p200": p200}).dropna().tail(260)
