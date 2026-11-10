@@ -1,6 +1,6 @@
 {
-  "name": "Sector Rotation \u2013 NSE vs Nifty",
-  "short_name": "Sector Rotation",
+  "name": "QuantDix \u2013 Sector Rotation & Signals",
+  "short_name": "QuantDix",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0f1115",
