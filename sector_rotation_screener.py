@@ -652,7 +652,7 @@ def rrg_chart(tails, table, as_of):
 
 
 # ----------------------------------------------------------------------------- app report
-APP_NAME = "Sector Rotation"
+APP_NAME = "QuantDix"
 
 
 def make_icons(out_dir):
@@ -684,7 +684,7 @@ def make_icons(out_dir):
         plt.close(fig)
 
     manifest = {
-        "name": "Sector Rotation – NSE vs Nifty",
+        "name": "QuantDix – Sector Rotation & Signals",
         "short_name": APP_NAME,
         "start_url": ".",
         "display": "standalone",
@@ -702,12 +702,12 @@ APP_TEMPLATE = r"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sector Rotation</title>
+<title>QuantDix</title>
 <meta name="theme-color" content="#12161f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Sector Rotation">
+<meta name="apple-mobile-web-app-title" content="QuantDix">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -831,7 +831,7 @@ details.rules li{margin:4px 0;font-size:13.5px}
 <body>
 <header class="appbar"><div class="in">
   <img src="icon-192.png" alt="" onerror="this.style.display='none'">
-  <div><h1>Sector Rotation</h1><div class="d" id="asof"></div></div>
+  <div><h1>QuantDix</h1><div class="d" id="asof"></div></div>
   <div class="sp"></div>
   <button class="iconbtn" id="theme" aria-label="Toggle dark mode">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -1168,6 +1168,27 @@ function signals(){
 
 /* ---------- POSITIONS ---------- */
 let POS=null, posBook=0;
+let MYCAP=(()=>{try{const v=JSON.parse(localStorage.getItem("myCap")||"null");if(v&&v.cap>0)return v}catch(e){}return {cap:500000,risk:1}})();
+function saveCap(){try{localStorage.setItem("myCap",JSON.stringify(MYCAP))}catch(e){}}
+function myQty(price,stop){
+  if(!(price>0)||!(stop>0)||price<=stop) return null;
+  const q=Math.floor(Math.min(MYCAP.cap*MYCAP.risk/100/(price-stop), MYCAP.cap*0.15/price));
+  return {q:Math.max(q,0), amt:Math.max(q,0)*price, risk:Math.max(q,0)*(price-stop)};
+}
+function myLine(price,stop,label){
+  const m=myQty(price,stop);
+  if(!m) return "";
+  return m.q>0?`<div class="s" style="margin-top:6px;color:var(--accent)">${label}: <b>${m.q} qty</b> · ₹${fmt(m.amt,0)} lagega · risk ₹${fmt(m.risk,0)}</div>`
+             :`<div class="s" style="margin-top:6px;color:var(--neg)">${label}: capital kam hai, 1 share bhi rule mein nahi aata</div>`;
+}
+function capCard(){
+  return `<div class="card"><div class="t">Aapka capital (qty calculator)</div>
+    <div class="s">Har strategy ke liye kitna capital lagaate ho? Har order ke neeche aapke hisaab se qty dikhegi.</div>
+    <div class="pgrid" style="grid-template-columns:2fr 1fr">
+      <div><span>Capital ₹ (har strategy)</span><input id="capIn" type="number" inputmode="numeric" min="10000" step="10000" value="${MYCAP.cap}" style="width:100%;background:transparent;border:0;color:var(--text);font:inherit;font-weight:700;font-size:15px;outline:none"></div>
+      <div><span>Risk / trade %</span><input id="riskIn" type="number" inputmode="decimal" min="0.25" max="3" step="0.25" value="${MYCAP.risk}" style="width:100%;background:transparent;border:0;color:var(--text);font:inherit;font-weight:700;font-size:15px;outline:none"></div></div>
+    <div class="s" style="margin-top:8px">Rule: qty = (capital × risk%) ÷ (price − stop), par ek stock mein max 15% capital. Price din mein badal sakta hai, isliye order se pehle live price par ek baar check karein.</div></div>`;
+}
 const inrPL=v=>v==null?'–':(v>=0?'+':'−')+'₹'+fmt(Math.abs(v),0);
 function spark(c){
   if(!c||c.length<2) return "";
@@ -1191,7 +1212,8 @@ function posCard(p){
       <div><span>Value</span><b>₹${fmt(p.qty*p.now,0)}</b></div>
       <div><span>Stop loss</span><b>₹${fmt(p.stop)}</b></div><div><span>Stop se door</span><b>${fmt(dStop,1)}%</b></div>
       <div><span>50 EMA</span><b>₹${fmt(p.ema)}</b></div></div>
-    ${ex?`<div class="s" style="margin-top:8px;color:var(--neg)">Exit signal: ${esc(ex)} → kal open par sell</div>`:''}
+    ${ex?`<div class="s" style="margin-top:8px;color:var(--neg)">Exit signal: ${esc(ex)} → kal open par sell (aapki poori qty)</div>`:''}
+    ${myLine(p.entry,p.stop,"Aapke capital par ye position")}
   </div>`;
 }
 function posRender(){
@@ -1205,10 +1227,11 @@ function posRender(){
       <div class="s">₹${fmt(P.total.start,0)} se shuru</div></div><span class="big ${pc(P.total.ret)}">${sgn(P.total.ret,2)}%</span></div>
     <div class="pgrid">${P.books.map(b=>`<div><span>${esc(b.label)}</span><b class="${pc(b.ret)}">${sgn(b.ret,1)}%</b></div>`).join("")}
       <div><span>Open positions</span><b>${P.books.reduce((a,b)=>a+b.open.length,0)}</b></div></div></div>
+  ${capCard()}
   <h2>Kal ke orders (${exits.length+buys.length})</h2>
   <div class="card">${exits.length+buys.length?[
-    ...exits.map(p=>`<div class="mini"><span class="on-pill r">SELL</span><div class="grow"><b>${esc(p.s)}</b><div class="s">${esc(p.book)} · ${p.qty} qty · ${esc(p.exit)}</div></div><span class="s">open par</span></div>`),
-    ...buys.map(o=>`<div class="mini"><span class="on-pill g">BUY</span><div class="grow"><b>${esc(o.s)}</b><div class="s">${esc(o.book)} · ~${o.qty} qty · stop ₹${fmt(o.stop)} · ${esc(o.info)}</div></div><span class="s">close ₹${fmt(o.price)}</span></div>`)
+    ...exits.map(p=>`<div class="mini"><span class="on-pill r">SELL</span><div class="grow"><b>${esc(p.s)}</b><div class="s">${esc(p.book)} · ${esc(p.exit)} · aapki poori qty becho</div></div><span class="s">open par</span></div>`),
+    ...buys.map(o=>`<div class="mini"><span class="on-pill g">BUY</span><div class="grow"><b>${esc(o.s)}</b><div class="s">${esc(o.book)} · model ~${o.qty} qty · stop ₹${fmt(o.stop)} · ${esc(o.info)}</div>${myLine(o.price,o.stop,"Aapke liye")}</div><span class="s">close ₹${fmt(o.price)}</span></div>`)
   ].join(""):'<div class="s">Kal koi entry ya exit nahi.</div>'}</div>
   <div class="seg" style="margin-top:14px;grid-template-columns:repeat(${P.books.length},1fr)">${P.books.map((b,i)=>`<button class="${i===posBook?'on':''}" data-pb="${i}">${esc(b.label)} (${b.open.length})</button>`).join("")}</div>
   <div class="card"><div class="row"><div class="grow"><div class="t">${esc(B.label)}</div>
@@ -1224,6 +1247,9 @@ function posRender(){
       <div style="text-align:right"><b class="${pc(t.ret_pct)}">${sgn(t.ret_pct,1)}%</b><div class="s ${pc(t.pnl)}">${inrPL(t.pnl)}</div></div></div>`).join(""):'<div class="s">Abhi tak koi trade close nahi hua.</div>'}</div>
   <p class="note">Rules: 1% risk per trade, max 10 stocks, ek stock max 15%, cost 0.2% har side. Signal aaj close par → entry kal open par. Exit: stop loss ya close 50 EMA ke neeche. Model portfolio hai, investment advice nahi.</p>`;
   el.querySelectorAll("[data-pb]").forEach(b=>b.onclick=()=>{posBook=+b.dataset.pb;posRender()});
+  const ci=el.querySelector("#capIn"), ri=el.querySelector("#riskIn");
+  const upd=()=>{const c=+ci.value, r=+ri.value; if(c>0) MYCAP.cap=c; if(r>0&&r<=5) MYCAP.risk=r; saveCap(); const y=window.scrollY; posRender(); window.scrollTo(0,y)};
+  ci.onchange=upd; ri.onchange=upd;
 }
 function positions(){
   const el=$("#v-positions");

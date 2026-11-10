@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QuantDix Live</title>
+<meta name="theme-color" content="#0f131b">
+<style>
+:root{--bg:#0f131b;--card:#171c26;--line:#262d3b;--ink:#e8ecf3;--muted:#8b95a7;--pos:#22c55e;--neg:#ef4444;--amb:#f5b942;--acc:#5b9cff}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .in{max-width:860px;margin:0 auto;padding:12px 16px 8px;display:flex;align-items:center;gap:10px}
+h1{font-size:18px;margin:0;flex:1}.st{font-size:12px;color:var(--muted)}
+.pill{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.pill.g{background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)}
+.pill.r{background:color-mix(in srgb,var(--neg) 18%,transparent);color:var(--neg)}
+.pill.a{background:color-mix(in srgb,var(--amb) 18%,transparent);color:var(--amb)}
+.pill.m{background:var(--line);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--pos);margin-right:6px;animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.25}}
+.tabs{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 16px 10px}
+.tabs button{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 0;font-weight:600;font-size:13px}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+main{max-width:860px;margin:0 auto;padding:12px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:10px}.grow{flex:1;min-width:0}
+.t{font-weight:700;font-size:15.5px}.s{color:var(--muted);font-size:12.5px}
+.big{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.amb{color:var(--amb)}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 2px 8px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.grid div{background:color-mix(in srgb,var(--line) 45%,transparent);border-radius:10px;padding:8px}
+.grid span{display:block;font-size:11.5px;color:var(--muted)}.grid b{font-size:14px}
+.li{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.li:last-child{border:0}
+.note{font-size:12.5px;color:var(--muted);background:color-mix(in srgb,var(--acc) 10%,transparent);border-left:3px solid var(--acc);padding:8px 10px;border-radius:8px;margin:8px 0}
+.empty{color:var(--muted);text-align:center;padding:30px 0}
+.view{display:none}.view.on{display:block}
+.hl{border-color:var(--neg)}.ha{border-color:var(--amb)}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right}td:first-child,th:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px}
+</style></head><body>
+<header><div class="in"><h1>QuantDix Live</h1><span id="mk" class="pill m">…</span></div>
+<div class="in" style="padding-top:0"><span class="st" id="tm">Connect ho raha hai…</span></div>
+<div class="tabs"><button data-v="pos" class="on">Positions</button><button data-v="alerts">Alerts</button><button data-v="sig">Signals</button><button data-v="scan">Scanner</button></div></header>
+<main>
+<section class="view on" id="v-pos"></section>
+<section class="view" id="v-alerts"></section>
+<section class="view" id="v-sig"></section>
+<section class="view" id="v-scan"></section>
+</main>
+<script>
+const $=q=>document.querySelector(q);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=(v,d=2)=>v==null||isNaN(v)?"–":Number(v).toLocaleString("en-IN",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sg=(v,d=1)=>v==null?"–":(v>0?"+":"")+fmt(v,d);
+const pc=v=>v>0?"pos":v<0?"neg":"";
+const inr=v=>v==null?"–":(v>=0?"+":"−")+"₹"+fmt(Math.abs(v),0);
+let L=null, view="pos", lastAlerts=0;
+let MYCAP=(()=>{try{const v=JSON.parse(localStorage.getItem("myCap")||"null");if(v&&v.cap>0)return v}catch(e){}return {cap:500000,risk:1}})();
+function myLine(price,stop){
+  if(!(price>0)||!(stop>0)||price<=stop) return "";
+  const q=Math.max(0,Math.floor(Math.min(MYCAP.cap*MYCAP.risk/100/(price-stop),MYCAP.cap*0.15/price)));
+  return q>0?`<div class="s" style="margin-top:6px;color:var(--acc)">Aapke liye: <b>${q} qty</b> · ₹${fmt(q*price,0)} · risk ₹${fmt(q*(price-stop),0)}</div>`
+            :`<div class="s" style="margin-top:6px;color:var(--neg)">Capital kam hai: rule mein 1 share bhi nahi aata</div>`;
+}
+function capCard(){return `<div class="card"><div class="t">Aapka capital (qty calculator)</div><div class="grid" style="grid-template-columns:2fr 1fr">
+  <div><span>Capital ₹ (har strategy)</span><input id="capIn" type="number" inputmode="numeric" value="${MYCAP.cap}" style="width:100%;background:transparent;border:0;color:var(--ink);font:inherit;font-weight:700;font-size:15px;outline:none"></div>
+  <div><span>Risk / trade %</span><input id="riskIn" type="number" inputmode="decimal" step="0.25" value="${MYCAP.risk}" style="width:100%;background:transparent;border:0;color:var(--ink);font:inherit;font-weight:700;font-size:15px;outline:none"></div></div>
+  <div class="s" style="margin-top:8px">qty = (capital × risk%) ÷ (live price − stop), ek stock mein max 15%.</div></div>`}
+function bindCap(){const ci=$("#capIn"),ri=$("#riskIn"); if(!ci) return;
+  const upd=()=>{const c=+ci.value,r=+ri.value; if(c>0) MYCAP.cap=c; if(r>0&&r<=5) MYCAP.risk=r; try{localStorage.setItem("myCap",JSON.stringify(MYCAP))}catch(e){} const y=scrollY; render(); scrollTo(0,y)};
+  ci.onchange=upd; ri.onchange=upd;}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{view=b.dataset.v;
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+view));render()});
+
+function brTile(lbl,k){const v=L.breadth[k],o=L.breadth0[k];return `<div><span>${lbl}</span><b class="${v>=50?'pos':'neg'}">${fmt(v,1)}%</b><span class="${pc(v-o)}">${sg(v-o)} aaj</span></div>`}
+function posCard(p){
+  const cls=p.status==="STOP HIT"?"hl":p.status.startsWith("50 EMA")?"ha":"";
+  const pill=p.status==="HOLD"?"g":p.status==="STOP HIT"?"r":"a";
+  return `<div class="card ${cls}"><div class="row"><div class="grow"><div class="t">${esc(p.s)}</div><div class="s">${esc(p.book)} · ${p.qty} qty · entry ₹${fmt(p.entry)} (${esc(p.date)})</div></div><span class="pill ${pill}">${esc(p.status)}</span></div>
+  <div class="row" style="margin-top:8px;align-items:flex-end"><div class="grow"><span class="big ${pc(p.ret)}">${sg(p.ret,1)}%</span> <span class="s ${pc(p.pnl)}">${inr(p.pnl)}</span></div>
+  <div style="text-align:right"><b>₹${fmt(p.ltp)}</b><div class="s ${pc(p.day)}">aaj ${sg(p.day,2)}%</div></div></div>
+  <div class="grid"><div><span>Stop loss</span><b>₹${fmt(p.stop)}</b></div><div><span>Stop se door</span><b class="${p.dstop<4?'neg':''}">${fmt(p.dstop,1)}%</b></div><div><span>50 EMA</span><b>₹${fmt(p.ema)}</b></div>
+  <div><span>Aaj high</span><b>₹${fmt(p.high)}</b></div><div><span>Aaj low</span><b>₹${fmt(p.low)}</b></div><div><span>Value</span><b>₹${fmt(p.qty*p.ltp,0)}</b></div></div></div>`}
+function vPos(){
+  if(!L.books.length) return '<div class="empty">Positions nahi mili. GitHub positions.json check karein.</div>';
+  const T=L.total, all=L.books.flatMap(b=>b.open), ords=L.books.flatMap(b=>b.orders.map(o=>({...o,book:b.label})));
+  const bad=all.filter(p=>p.status!=="HOLD");
+  return `<div class="card"><div class="row"><div class="grow"><div class="t">Portfolio (live)</div><div class="s">₹${fmt(T.start,0)} se shuru</div></div><span class="big ${pc(T.ret)}">${sg(T.ret,2)}%</span></div>
+   <div class="row" style="margin-top:6px"><div class="grow big">₹${fmt(T.equity,0)}</div><div style="text-align:right"><div class="s">Aaj ka P&L</div><b class="${pc(T.day)}">${inr(T.day)}</b></div></div>
+   <div class="grid">${L.books.map(b=>`<div><span>${esc(b.label)}</span><b class="${pc(b.ret)}">${sg(b.ret,2)}%</b><span class="${pc(b.day)}">aaj ${inr(b.day)}</span></div>`).join("")}<div><span>Open</span><b>${all.length}</b><span>${bad.length?`<span class="neg">${bad.length} dhyan</span>`:'sab theek'}</span></div></div></div>
+   ${ords.length?`<h2>Aaj open par buy (kal ke signal)</h2><div class="card">${ords.map(o=>`<div class="li"><span class="pill g">BUY</span><div class="grow"><b>${esc(o.s)}</b><div class="s">${esc(o.book)} · model ~${o.qty} qty · stop ₹${fmt(o.stop)}</div>${myLine(o.ltp,o.stop)}</div><div style="text-align:right"><div class="s">open ₹${fmt(o.open)}</div><b>₹${fmt(o.ltp)}</b></div></div>`).join("")}</div>`:''}
+   <h2>Open positions (${all.length})</h2>${all.slice().sort((a,b)=>(a.status==="HOLD")-(b.status==="HOLD")||b.ret-a.ret).map(posCard).join("")}
+   <div class="note">${esc(L.rules.stop)}<br>${esc(L.rules.ema)}</div>`}
+function vAlerts(){
+  return `<div class="card">${L.alerts.length?L.alerts.map(a=>`<div class="li"><span class="pill ${a.level}">${esc(a.t)}</span><div class="grow">${esc(a.msg)}</div></div>`).join(""):'<div class="s">Abhi koi alert nahi. Stop hit, 50 EMA exit, naya signal ya filter ON/OFF hote hi yahan aayega.</div>'}</div>`}
+function sigList(arr,kind,on){
+  if(!arr.length) return '<div class="card s">Abhi koi signal nahi.</div>';
+  return arr.map(x=>`<div class="card" style="${(!on||x.held||(kind==='pivot'&&x.tt===false))?'opacity:.55':''}"><div class="row"><div class="grow"><div class="t">${esc(x.s)} ${x.held?'<span class="pill m">already held</span>':''}</div><div class="s">${esc(x.ind)}${kind==='pos'?' · '+esc(x.setup)+' · score '+x.score:''}${kind==='pivot'?(x.tt===false?' · Trend Template ✗':' · Trend Template ✓'):''}</div></div>
+   <span class="pill ${x.state==='confirm'?'g':'a'}">${x.state==='confirm'?'CONFIRM':'forming'}</span></div>
+   ${x.held?'':myLine(x.close,x.stop)}<div class="grid"><div><span>Live</span><b>₹${fmt(x.close)}</b><span class="${pc(x.chg)}">${sg(x.chg,2)}%</span></div><div><span>Stop</span><b>₹${fmt(x.stop)}</b><span>risk ${fmt(x.risk,1)}%</span></div><div><span>RS 3M</span><b class="${pc(x.rs)}">${sg(x.rs,1)}%</b></div></div></div>`).join("")}
+function vSig(){
+  return capCard()+`<div class="card"><div class="t">Live breadth</div><div class="grid">${brTile("20 DMA","p20")}${brTile("50 DMA","p50")}${brTile("200 DMA","p200")}</div>
+   <div class="row" style="margin-top:10px;gap:8px"><span class="pill ${L.on.pivot?'g':'r'}">Pivot ${L.on.pivot?'ON':'OFF'}</span><span class="pill ${L.on.positional?'g':'r'}">Positional ${L.on.positional?'ON':'OFF'}</span>
+   <span class="s grow" style="text-align:right">${L.confirm?'3:15 ke baad: signals confirm':'Din chal raha hai: signals "forming", close par confirm'}</span></div></div>
+   <h2>Pivot breakout (${L.pivot.length})</h2><div class="note">${esc(L.rules.pivot)}</div>${sigList(L.pivot,'pivot',L.on.pivot)}
+   <h2>Positional (${L.pos.length})</h2><div class="note">${esc(L.rules.positional)}</div>${sigList(L.pos,'pos',L.on.positional)}
+   <h2>Breakout ke kareeb (${L.watch.length})</h2><div class="card">${L.watch.length?L.watch.map(w=>`<div class="li"><div class="grow"><b>${esc(w.s)}</b><div class="s">${esc(w.ind)} · pivot ₹${fmt(w.ph)}</div></div><div style="text-align:right"><b>${fmt(w.dist,1)}% door</b><div class="s ${pc(w.chg)}">${sg(w.chg,2)}%</div></div></div>`).join(""):'<div class="s">Koi nahi.</div>'}</div>`}
+function tbl(rows,cols){return `<table><tr>${cols.map(c=>`<th>${c[0]}</th>`).join("")}</tr>${rows.map(r=>`<tr>${cols.map(c=>`<td>${c[1](r)}</td>`).join("")}</tr>`).join("")}</table>`}
+function vScan(){
+  const S=L.scan, Q={Leading:'g',Improving:'a',Weakening:'a',Lagging:'r'};
+  const base=[["Stock",r=>`<b>${esc(r.s)}</b><div class="s">${esc(r.ind)}</div>`],["LTP",r=>fmt(r.ltp)],["Aaj",r=>`<span class="${pc(r.chg)}">${sg(r.chg,2)}%</span>`]];
+  return `<div class="card"><div class="row"><div class="grow t">Market (Nifty 500)</div><span class="pill g">▲ ${S.adv}</span><span class="pill r">▼ ${S.dec}</span></div></div>
+   <h2>Industries (live rotation)</h2><div class="card">${L.industries.slice().sort((a,b)=>"LIWL".indexOf(a.q[0])-"LIWL".indexOf(b.q[0])).map(i=>`<div class="li"><div class="grow">${esc(i.ind)}<div class="s">${esc(i.sig)}</div></div><span class="pill ${Q[i.q]||'m'}">${esc(i.q)}</span></div>`).join("")}</div>
+   <h2>RS leaders (3 mahine)</h2><div class="card">${tbl(S.rs,[...base,["3M",r=>`<b class="pos">${sg(r.r3m,1)}%</b>`]])}</div>
+   <h2>52-week high ke paas</h2><div class="card">${tbl(S.near52,[...base,["52W high se",r=>`${fmt(r.hi52,1)}%`]])}</div>
+   <h2>Aaj ke gainers</h2><div class="card">${tbl(S.gainers,base)}</div>
+   <h2>Aaj ke losers</h2><div class="card">${tbl(S.losers,base)}</div>`}
+function render(){
+  if(!L) return;
+  if(view==="alerts") lastAlerts=L.alerts.length;
+  if(document.activeElement&&/capIn|riskIn/.test(document.activeElement.id)) return;
+  $("#v-"+view).innerHTML={pos:vPos,alerts:vAlerts,sig:vSig,scan:vScan}[view]();
+  bindCap();
+}
+function head(){
+  const age=Math.round(Date.now()/1000-L.epoch);
+  const stale=age>180;
+  $("#mk").className="pill "+(L.status.startsWith("LIVE")&&!stale?"g":L.status.startsWith("DEMO")?"a":"m");
+  $("#mk").innerHTML=(L.status.startsWith("LIVE")&&!stale?'<span class="dot"></span>':"")+esc(stale?"Engine ruka hua?":L.status);
+  $("#tm").textContent=`Update: ${L.time} · ${age<60?age+" sec":Math.round(age/60)+" min"} pehle · ${L.quotes} stocks`;
+  const nb=$(".tabs [data-v=alerts]"); nb.textContent=L.alerts.length>lastAlerts&&view!=="alerts"?`Alerts (${L.alerts.length}) ●`:`Alerts (${L.alerts.length})`;
+}
+async function load(){
+  try{const r=await fetch("live.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0; L=await r.json(); head(); render();}
+  catch(e){$("#tm").textContent="Engine se connect nahi ho pa raha. PC par live engine chal raha hai?";}
+}
+load(); setInterval(load,20000); setInterval(()=>L&&head(),5000);
+</script></body></html>
