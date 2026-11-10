@@ -1,5 +1,5 @@
 """
-Paper trading for the two app strategies: PIVOT BREAKOUT and POSITIONAL.
+Paper trading for the app strategies: PIVOT BREAKOUT (+ Minervini VCP first), POSITIONAL and WEDGE POP (3 books).
 
 Uses the same signal code as the app (sector_rotation_screener.py -> strategy_signals),
 so the trades here are exactly the app's Signals tab, executed by the rules of the 10-year backtest.
@@ -46,7 +46,8 @@ import sector_rotation_screener as S  # noqa: E402
 
 DIR = "paper"
 COST, RISK, MAXPOS, POSCAP, MAXIND = 0.002, 0.01, 10, 0.15, 3
-BOOKS = {"pivot": "Pivot breakout", "positional": "Positional"}
+BOOKS = {"pivot": "Pivot breakout + VCP", "positional": "Positional", "wedgepop": "Wedge Pop"}
+DEFAULT_RULE = {"pivot": "ema50", "positional": "ema50", "wedgepop": "wedge"}
 
 
 def get_data():
@@ -65,7 +66,19 @@ def get_data():
     data = cache["d"]
     P = {k: pd.DataFrame({s: d[k] for s, d in data.items()}).sort_index() for k in ("Open", "High", "Low", "Close")}
     P["EMA50"] = P["Close"].ewm(span=50, adjust=False).mean()
+    P["EMA10"] = P["Close"].ewm(span=10, adjust=False).mean()
+    P["EMA20"] = P["Close"].ewm(span=20, adjust=False).mean()
+    P["SMA50"] = P["Close"].rolling(50).mean()
     return strat, P
+
+
+def exit_line(P, d, s, rule):
+    """(label, level) of the close-based exit for a position."""
+    if rule == "sma50":
+        return "50 SMA", v(P, "SMA50", d, s)
+    if rule == "wedge":
+        return "10 & 20 EMA", min(v(P, "EMA10", d, s), v(P, "EMA20", d, s))
+    return "50 EMA", v(P, "EMA50", d, s)
 
 
 def v(P, k, d, s):
@@ -135,13 +148,20 @@ def step(name, b, P, d, trades, notes):
         op = v(P, "Open", d, s)
         if np.isnan(op):
             notes.append(f"{name}: {s} no price on {tag}, BUY dropped"); continue
+        if o.get("type") == "stop":                       # VCP buy-stop: fill only if the pivot is taken out
+            hi = v(P, "High", d, s)
+            if np.isnan(hi) or hi <= o["level"]:
+                notes.append(f"{name}: {s} VCP pivot {o['level']:.2f} not taken out on {tag} -> order cancelled"); continue
+            op = max(op, o["level"])
+            stop = round(op - min(2 * o["atr"], 0.10 * op), 2)
         if op <= stop:
             notes.append(f"{name}: {s} opened {op:.2f} at/below stop {stop:.2f} -> BUY cancelled"); continue
         qty = int(min(eq_prev * RISK / (op - stop), eq_prev * POSCAP / op, b["cash"] / (op * (1 + COST))))
         if qty <= 0:
             continue
         b["cash"] -= qty * op * (1 + COST)
-        b["positions"][s] = dict(qty=qty, entry=round(op, 2), stop=stop, entry_date=tag, industry=o["industry"])
+        b["positions"][s] = dict(qty=qty, entry=round(op, 2), stop=stop, entry_date=tag, industry=o["industry"],
+                                 rule=o.get("rule", DEFAULT_RULE[name]), setup=o.get("setup", ""))
     b["pending_buys"] = []
     for s in list(b["positions"]):
         p = b["positions"][s]
@@ -150,9 +170,14 @@ def step(name, b, P, d, trades, notes):
             sell(s, p["stop"] if p["entry_date"] == tag else min(op, p["stop"]), "stop loss")
             b["pending_sells"].pop(s, None)
     for s, p in b["positions"].items():
-        cl, e = v(P, "Close", d, s), v(P, "EMA50", d, s)
-        if not np.isnan(cl) and cl < e and s not in b["pending_sells"]:
-            b["pending_sells"][s] = "close < 50 EMA"
+        rule = p.get("rule", DEFAULT_RULE[name])
+        cl = v(P, "Close", d, s)
+        lab, lvl = exit_line(P, d, s, rule)
+        if not np.isnan(cl) and s not in b["pending_sells"]:
+            if not np.isnan(lvl) and cl < lvl:
+                b["pending_sells"][s] = f"close < {lab}"
+            elif rule == "wedge" and cl > v(P, "EMA20", d, s) * 1.20:
+                b["pending_sells"][s] = "exhaustion: 20% above 20 EMA (profit)"
         prev = P["Close"][s].loc[:d].dropna() if s in P["Close"] else pd.Series(dtype=float)
         if len(prev) >= 2 and prev.index[-1] == d and abs(prev.iloc[-1] / prev.iloc[-2] - 1) > 0.25:
             notes.append(f"{name}: {s} moved {100 * (prev.iloc[-1] / prev.iloc[-2] - 1):.0f}% on {tag} - "
@@ -161,7 +186,8 @@ def step(name, b, P, d, trades, notes):
 
 
 def new_orders(name, b, P, d, cands, on):
-    if not on:
+    cands = [c for c in cands if c.get("always") or on]
+    if not cands:
         return
     held = {s: p for s, p in b["positions"].items() if s not in b["pending_sells"]}
     slots = MAXPOS - len(held)
@@ -170,16 +196,22 @@ def new_orders(name, b, P, d, cands, on):
                            if s in b["positions"])
     indc = pd.Series([p["industry"] for p in held.values()], dtype=object).value_counts().to_dict()
     for c in cands:
-        s, ind, close, stop = c["s"], c["ind"], c["close"], c["stop"]
+        s, ind, stop = c["s"], c["ind"], c["stop"]
+        close = c.get("level", c["close"])                 # VCP: buy-stop level
         if slots <= 0:
             break
-        if s in b["positions"] or indc.get(ind, 0) >= MAXIND or close <= stop:
+        if s in b["positions"] or any(o["symbol"] == s for o in b["pending_buys"]) or indc.get(ind, 0) >= MAXIND or close <= stop:
             continue
         qty = int(min(eq * RISK / (close - stop), eq * POSCAP / close, cash / (close * (1 + COST))))
         if qty <= 0:
             continue
-        info = f"RS {c['rs']}%" + (f", score {c['score']} {c['setup']}" if "score" in c else "")
-        b["pending_buys"].append(dict(symbol=s, stop=stop, est_price=close, est_qty=qty, industry=ind, info=info))
+        info = f"RS {c['rs']}%" + (f", score {c['score']} {c['setup']}" if "score" in c else "") + \
+            (f", VCP {'/'.join(str(x) for x in c['cons'])}%" if "cons" in c else "") + (", Wedge Pop" if c.get("kind") == "wp" else "")
+        o = dict(symbol=s, stop=stop, est_price=close, est_qty=qty, industry=ind, info=info,
+                 rule=c.get("rule", DEFAULT_RULE[name]), setup=c.get("kind", name))
+        if "level" in c:
+            o.update(type="stop", level=c["level"], atr=c["atr"])
+        b["pending_buys"].append(o)
         slots -= 1
         cash -= qty * close * (1 + COST)
         indc[ind] = indc.get(ind, 0) + 1
@@ -191,7 +223,7 @@ def report(P, books, strat, d, notes):
     L = [f"PAPER TRADING  -  data up to {tag}", "=" * 64,
          f"Breadth: 20 DMA {br['p20']}% | 50 DMA {br['p50']}% | 200 DMA {br['p200']}%",
          f"Pivot breakout filter: {'ON' if strat['pivotOn'] else 'OFF'} | "
-         f"Positional filter: {'ON' if strat['posOn'] else 'OFF'}", ""]
+         f"Positional filter: {'ON' if strat['posOn'] else 'OFF'} | VCP + Wedge Pop: no breadth filter", ""]
     orders, tot_eq, tot_cap = [], 0, 0
     for name, b in books.items():
         eq = equity(P, b, d)
@@ -203,17 +235,24 @@ def report(P, books, strat, d, notes):
             orders.append(dict(book=name, action="SELL", symbol=s, qty=q, stop="", note=why))
             L.append(f"  SELL {s} x {q} at tomorrow's open  ({why})")
         for o in b["pending_buys"]:
-            orders.append(dict(book=name, action="BUY", symbol=o["symbol"], qty=o["est_qty"], stop=o["stop"],
-                               note=f"skip if it opens at/below {o['stop']}"))
-            L.append(f"  BUY  {o['symbol']} x ~{o['est_qty']} at tomorrow's open (close {o['est_price']}), "
-                     f"stop {o['stop']}  [{o['industry']}, {o['info']}]")
+            if o.get("type") == "stop":
+                orders.append(dict(book=name, action="BUY-STOP", symbol=o["symbol"], qty=o["est_qty"], stop=o["stop"],
+                                   note=f"only if price trades above {o['level']}; stop = fill - 2xATR (max 10%)"))
+                L.append(f"  BUY-STOP {o['symbol']} x ~{o['est_qty']} above {o['level']} tomorrow, "
+                         f"stop ~{o['stop']}  [{o['industry']}, {o['info']}]")
+            else:
+                orders.append(dict(book=name, action="BUY", symbol=o["symbol"], qty=o["est_qty"], stop=o["stop"],
+                                   note=f"skip if it opens at/below {o['stop']}"))
+                L.append(f"  BUY  {o['symbol']} x ~{o['est_qty']} at tomorrow's open (close {o['est_price']}), "
+                         f"stop {o['stop']}  [{o['industry']}, {o['info']}]")
         if not b["pending_sells"] and not b["pending_buys"]:
             L.append("  No orders for tomorrow.")
         L.append(f"  Open positions: {len(b['positions'])}")
         for s, p in sorted(b["positions"].items()):
-            cl, e = last_close(P, s, d), v(P, "EMA50", d, s)
+            cl = last_close(P, s, d)
+            lab, e = exit_line(P, d, s, p.get("rule", DEFAULT_RULE[name]))
             L.append(f"    {s:<12} {p['qty']:>5} @ {p['entry']:>9.2f} ({p['entry_date']})  now {cl:>9.2f} "
-                     f"{100 * (cl / p['entry'] - 1):+6.1f}%  stop {p['stop']:>9.2f}  50EMA {e:>9.2f}")
+                     f"{100 * (cl / p['entry'] - 1):+6.1f}%  stop {p['stop']:>9.2f}  {lab} {e:>9.2f}")
         tf = os.path.join(DIR, f"{name}_trades.csv")
         if os.path.exists(tf):
             t = pd.read_csv(tf)
@@ -235,22 +274,24 @@ def write_json(P, books, strat, d):
     """positions.json for the app's Positions tab."""
     tag = str(d.date())
     br = strat["breadth"]
-    out = {"asOf": tag, "breadth": br, "on": {"pivot": bool(strat["pivotOn"]), "positional": bool(strat["posOn"])},
+    out = {"asOf": tag, "breadth": br, "on": {"pivot": bool(strat["pivotOn"]), "positional": bool(strat["posOn"]), "wedgepop": True},
            "books": [], "total": {}}
     tot_eq = tot_cap = 0
     for name, b in books.items():
         eq = equity(P, b, d); tot_eq += eq; tot_cap += b["start_capital"]
         opn = []
         for s, p in sorted(b["positions"].items()):
-            cl, e = last_close(P, s, d), v(P, "EMA50", d, s)
+            cl = last_close(P, s, d)
+            lab, e = exit_line(P, d, s, p.get("rule", DEFAULT_RULE[name]))
             cl = p["entry"] if np.isnan(cl) else cl
             opn.append(dict(s=s, qty=p["qty"], entry=p["entry"], date=p["entry_date"], now=round(cl, 2),
                             ret=round((cl / p["entry"] - 1) * 100, 2),
                             pnl=round(p["qty"] * (cl * (1 - COST) - p["entry"] * (1 + COST))),
                             stop=round(p["stop"], 2), ema=None if np.isnan(e) else round(e, 2),
-                            ind=p.get("industry", ""), exit=b["pending_sells"].get(s)))
+                            ind=p.get("industry", ""), exit=b["pending_sells"].get(s), exl=lab,
+                            setup=p.get("setup", "")))
         buys = [dict(s=o["symbol"], qty=o["est_qty"], price=o["est_price"], stop=o["stop"], ind=o["industry"],
-                     info=o["info"]) for o in b["pending_buys"]]
+                     info=o["info"], type=o.get("type", "open")) for o in b["pending_buys"]]
         closed, curve = [], []
         tf = os.path.join(DIR, f"{name}_trades.csv")
         if os.path.exists(tf):
@@ -275,6 +316,7 @@ def main():
     ap.add_argument("--dir", default=DIR, help="folder for the ledger files (default: paper)")
     ap.add_argument("--capital-pivot", type=float, default=500000)
     ap.add_argument("--capital-pos", type=float, default=500000)
+    ap.add_argument("--capital-wedge", type=float, default=500000)
     a = ap.parse_args()
     DIR = a.dir
     os.makedirs(DIR, exist_ok=True)
@@ -282,9 +324,13 @@ def main():
     dates = P["Close"].index
     d = dates[-1]
     # pivot: only stocks that pass the Trend Template (app shows the others dimmed)
-    cands = {"pivot": [x for x in strat["pivot"] if x.get("tt", True)], "positional": strat["pos"]}
-    on = {"pivot": strat["pivotOn"], "positional": strat["posOn"]}
-    caps = {"pivot": a.capital_pivot, "positional": a.capital_pos}
+    # pivot book: VCP buy-stops first (no breadth filter, exit 50 SMA), then pivot breakouts that pass the Trend Template
+    vcp = [dict(x, always=True, rule="sma50", kind="vcp") for x in strat.get("vcp", [])]
+    cands = {"pivot": vcp + [dict(x, kind="pivot") for x in strat["pivot"] if x.get("tt", True)],
+             "positional": [dict(x, kind="positional") for x in strat["pos"]],
+             "wedgepop": [dict(x, always=True, rule="wedge", kind="wp") for x in strat.get("wp", [])]}
+    on = {"pivot": strat["pivotOn"], "positional": strat["posOn"], "wedgepop": True}
+    caps = {"pivot": a.capital_pivot, "positional": a.capital_pos, "wedgepop": a.capital_wedge}
     books, notes, trades = {}, [], []
     for name in BOOKS:
         b = load(name, caps[name])

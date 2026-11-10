@@ -1096,6 +1096,7 @@ function breadthChart(h){
 function sigCard(x,kind,on){
   const z=sizing(x.close,x.stop);
   if(kind==="pivot"&&x.tt===false) on=false;
+  if(kind==="vcp"||kind==="wp") return sigCard2(x,kind);
   const top=kind==="pivot"?`<span class="tag g">Pivot high ${fmt(x.ph)} toda</span>${x.tt===false?'<span class="tag r">Trend Template ✗ (trade nahi)</span>':'<span class="tag g">Trend Template ✓</span>'}`:`<span class="tag g">${esc(x.setup)}</span><span class="tag b">Score ${x.score}</span>`;
   return `<div class="card ${on?'':'dim'}">
     <div class="row"><div class="grow"><div class="t">${esc(x.s)}</div><div class="s">${esc(x.ind)} · 3M RS ${sgn(x.rs,1)}%</div></div>
@@ -1107,6 +1108,21 @@ function sigCard(x,kind,on){
       <div class="m"><span>Risk</span><b>${fmt(x.risk,1)}%</b></div>
       <div class="m"><span>Qty (${fmt(RISK,1)}% risk)</span><b>${z.q} · ${inr(z.v)}</b></div>
     </div></div>`;
+}
+function sigCard2(x,kind){
+  const vcp=kind==="vcp", px=vcp?x.level:x.close, z=sizing(px,x.stop);
+  const tags=vcp?`<span class="tag g">VCP: ${x.cons.map(c=>c+"%").join(" → ")}</span><span class="tag">Base ${x.base} din</span><span class="tag">Pivot ₹${fmt(x.pivot)}</span>`
+                :`<span class="tag g">Wedge Pop</span><span class="tag">10 EMA ₹${fmt(x.e10)}</span><span class="tag">20 EMA ₹${fmt(x.e20)}</span>`;
+  return `<div class="card">
+    <div class="row"><div class="grow"><div class="t">${esc(x.s)}</div><div class="s">${esc(x.ind)} · 3M RS ${sgn(x.rs,1)}%</div></div>
+      <div style="text-align:right"><div class="t">₹${fmt(x.close)}</div><div class="s">aaj ka close</div></div></div>
+    <div class="tags">${tags}</div>
+    <div class="grid">
+      <div class="m"><span>Entry</span><b>${vcp?'Kal ₹'+fmt(x.level)+' ke upar (buy-stop)':'Kal open'}</b></div>
+      <div class="m"><span>Stop loss</span><b class="neg">₹${fmt(x.stop)}</b></div>
+      <div class="m"><span>Risk</span><b>${fmt(x.risk,1)}%</b></div>
+      <div class="m"><span>Qty (${fmt(RISK,1)}% risk)</span><b>${z.q} · ${inr(z.v)}</b></div>
+    </div>${vcp?'<div class="s" style="margin-top:8px">Kal price ₹'+fmt(x.level)+' paar kare tabhi kharido. Na kare to order cancel. Stop = entry − 2×ATR (max 10%).</div>':''}</div>`;
 }
 function exitList(){
   const X=D.strat.exits, syms=HOLD.toUpperCase().split(/[\s,]+/).filter(Boolean);
@@ -1142,6 +1158,12 @@ function signals(){
     <h2>Positional signals (${S.pos.length})</h2>
     ${S.posOn?'':'<div class="card s">Filter OFF hai: ye signals sirf jaankari ke liye hain, rules ke hisaab se naya trade nahi.</div>'}
     ${S.pos.length?S.pos.map(x=>sigCard(x,"pos",S.posOn)).join(""):'<div class="card s">Aaj koi positional signal nahi.</div>'}
+    <h2>Minervini VCP: kal ke buy-stop (${(S.vcp||[]).length})</h2>
+    <div class="card s">Pivot breakout book mein sabse pehle. Breadth filter nahi lagta (Minervini ka trend screen khud filter hai).</div>
+    ${(S.vcp||[]).length?S.vcp.map(x=>sigCard(x,"vcp",true)).join(""):'<div class="card s">Aaj koi VCP setup nahi (ye kam bante hain, saal mein ~40).</div>'}
+    <h2>Wedge Pop (${(S.wp||[]).length})</h2>
+    <div class="card s">Alag book (₹5L). Breadth filter nahi. Exit: close 10 aur 20 EMA dono ke neeche, ya 20 EMA se 20% upar (profit).</div>
+    ${(S.wp||[]).length?S.wp.map(x=>sigCard(x,"wp",true)).join(""):'<div class="card s">Aaj koi Wedge Pop nahi.</div>'}
     <h2>Watchlist: pivot high se 3% neeche (${S.watch.length})</h2>
     <div class="card">${S.watch.length?S.watch.map(w=>`<div class="mini"><div class="grow"><b>${esc(w.s)}</b><div class="s">${esc(w.ind)}</div></div>
       <div style="text-align:right"><div>₹${fmt(w.close)} → ₹${fmt(w.ph)}</div><div class="s">${fmt(w.dist,1)}% door · RS ${sgn(w.rs,1)}%</div></div></div>`).join(""):'<div class="s">Koi stock breakout ke kareeb nahi.</div>'}</div>
@@ -1160,7 +1182,16 @@ function signals(){
       <li>Industry Leading/Improving; positional score ≥ 75; setup Base breakout / Near 52W high / Weekly uptrend.</li>
       <li>Kal open par kharido. Stop: 20-din low (max 12%; 3% se kam ho to 5%).</li>
       <li>Exit: close 50 EMA ke neeche → agle din open; ya stop.</li></ol></details>
-    <p class="note">Sab trades: 1% risk, ek stock max 15% capital, max 10 stocks, ek industry max 3. Backtest 2016–2026, sirf aaj ke Nifty 500 stocks par (survivorship bias) — asli returns kam ho sakte hain. Investment advice nahi.</p></div>`;
+    <details class="rules" style="margin-top:8px"><summary>Minervini VCP (Pivot book mein priority)</summary><ol>
+      <li>Weekly screen: 52W high ke 25% andar, price ≥ ₹30, 200 SMA 3 mahine se upar, 50 SMA &gt; 200 SMA, price &gt; 200 SMA, 52W low se 100%+ upar, 6 mahine mein naya 52W high.</li>
+      <li>Base 15–60 din; 2+ contractions, har agla pichle se chhota; aakhri ≤ 15%; aakhri contraction mein volume 50-din average se kam.</li>
+      <li>Entry: aakhri swing high (pivot) tootne par buy-stop. Stop: entry − 2×ATR(20), max 10%.</li>
+      <li>Exit: close 50 SMA ke neeche → agle din open; ya stop.</li></ol></details>
+    <details class="rules" style="margin-top:8px"><summary>Wedge Pop (alag book)</summary><ol>
+      <li>Pichle 5 mein se 3+ din close 10 aur 20 EMA dono ke neeche; 10 aur 20 EMA 1.5% ke andar; 20 EMA &gt; 50 EMA.</li>
+      <li>Aaj close dono EMA ke upar, volume 20-din average ka 1.3x+ → kal open par kharido. Stop: 5-din low −0.5%.</li>
+      <li>Exit: close 10 aur 20 EMA dono ke neeche, ya close 20 EMA se 20%+ upar (exhaustion) → agle din open.</li></ol></details>
+    <p class="note">3 books ka backtest (2016–2026): Pivot+VCP, Positional, Wedge Pop ⅓ har ek → 23.2% CAGR, max DD −20.0%, sabse bura saal −4.7%. Sab trades: 1% risk, ek stock max 15% capital, max 10 stocks, ek industry max 3. Backtest 2016–2026, sirf aaj ke Nifty 500 stocks par (survivorship bias) — asli returns kam ho sakte hain. Investment advice nahi.</p></div>`;
   const upd=()=>{CAP=Number($("#cap").value)||0;RISK=Number($("#risk").value)||0;LS.set("cap",CAP);LS.set("risk",RISK)};
   $("#cap").onchange=()=>{upd();signals()}; $("#risk").onchange=()=>{upd();signals()};
   $("#hold").oninput=e=>{HOLD=e.target.value;LS.set("hold",HOLD);$("#exitlist").innerHTML=exitList()};
@@ -1211,7 +1242,7 @@ function posCard(p){
     <div class="pgrid"><div><span>Qty</span><b>${p.qty}</b></div><div><span>Entry</span><b>₹${fmt(p.entry)}</b></div>
       <div><span>Value</span><b>₹${fmt(p.qty*p.now,0)}</b></div>
       <div><span>Stop loss</span><b>₹${fmt(p.stop)}</b></div><div><span>Stop se door</span><b>${fmt(dStop,1)}%</b></div>
-      <div><span>50 EMA</span><b>₹${fmt(p.ema)}</b></div></div>
+      <div><span>Exit line (${esc(p.exl||"50 EMA")})</span><b>₹${fmt(p.ema)}</b></div></div>
     ${ex?`<div class="s" style="margin-top:8px;color:var(--neg)">Exit signal: ${esc(ex)} → kal open par sell (aapki poori qty)</div>`:''}
     ${myLine(p.entry,p.stop,"Aapke capital par ye position")}
   </div>`;
@@ -1220,7 +1251,7 @@ function posRender(){
   const P=POS, el=$("#v-positions");
   const B=P.books[posBook]||P.books[0];
   const exits=P.books.flatMap(b=>b.open.filter(p=>p.exit).map(p=>({...p,book:b.label})));
-  const buys=P.books.flatMap(b=>(P.on[b.key]?b.buys:[]).map(o=>({...o,book:b.label})));
+  const buys=P.books.flatMap(b=>b.buys.map(o=>({...o,book:b.label})));
   el.innerHTML=`
   <div class="card"><div class="row"><div class="grow"><div class="t">Portfolio</div><div class="s">App ke rules se apne-aap chalta hai · ${esc(P.asOf)} close</div></div></div>
     <div class="row" style="margin-top:6px;align-items:flex-end"><div class="grow"><div class="big">₹${fmt(P.total.equity,0)}</div>
@@ -1231,12 +1262,12 @@ function posRender(){
   <h2>Kal ke orders (${exits.length+buys.length})</h2>
   <div class="card">${exits.length+buys.length?[
     ...exits.map(p=>`<div class="mini"><span class="on-pill r">SELL</span><div class="grow"><b>${esc(p.s)}</b><div class="s">${esc(p.book)} · ${esc(p.exit)} · aapki poori qty becho</div></div><span class="s">open par</span></div>`),
-    ...buys.map(o=>`<div class="mini"><span class="on-pill g">BUY</span><div class="grow"><b>${esc(o.s)}</b><div class="s">${esc(o.book)} · model ~${o.qty} qty · stop ₹${fmt(o.stop)} · ${esc(o.info)}</div>${myLine(o.price,o.stop,"Aapke liye")}</div><span class="s">close ₹${fmt(o.price)}</span></div>`)
+    ...buys.map(o=>`<div class="mini"><span class="on-pill g">BUY</span><div class="grow"><b>${esc(o.s)}</b><div class="s">${esc(o.book)} · model ~${o.qty} qty · stop ₹${fmt(o.stop)} · ${esc(o.info)}</div>${o.type==="stop"?`<div class="s" style="color:var(--accent)">Buy-stop: sirf tab jab price ₹${fmt(o.price)} paar kare</div>`:''}${myLine(o.price,o.stop,"Aapke liye")}</div><span class="s">${o.type==="stop"?'₹'+fmt(o.price)+' ke upar':'close ₹'+fmt(o.price)}</span></div>`)
   ].join(""):'<div class="s">Kal koi entry ya exit nahi.</div>'}</div>
   <div class="seg" style="margin-top:14px;grid-template-columns:repeat(${P.books.length},1fr)">${P.books.map((b,i)=>`<button class="${i===posBook?'on':''}" data-pb="${i}">${esc(b.label)} (${b.open.length})</button>`).join("")}</div>
   <div class="card"><div class="row"><div class="grow"><div class="t">${esc(B.label)}</div>
-      <div class="s">Filter ${P.on[B.key]?'ON: naye trade ban sakte hain':'OFF: naye trade nahi, purane apne exit se chalenge'}</div></div>
-      <span class="on-pill ${P.on[B.key]?'g':'r'}">${P.on[B.key]?'ON':'OFF'}</span></div>
+      <div class="s">${B.key==="wedgepop"?'Breadth filter nahi lagta':B.key==="pivot"?(P.on.pivot?'Filter ON: pivot + VCP dono':'Filter OFF: naye pivot trade nahi, VCP chalu'):(P.on[B.key]?'Filter ON: naye trade ban sakte hain':'Filter OFF: naye trade nahi, purane apne exit se chalenge')}</div></div>
+      <span class="on-pill ${P.on[B.key]!==false?'g':'r'}">${P.on[B.key]!==false?'ON':'OFF'}</span></div>
     <div class="pgrid"><div><span>Equity</span><b>₹${fmt(B.equity,0)}</b></div><div><span>Cash</span><b>₹${fmt(B.cash,0)}</b></div>
       <div><span>Return</span><b class="${pc(B.ret)}">${sgn(B.ret,2)}%</b></div></div>${spark(B.curve)}</div>
   <h2>Open positions (${B.open.length})</h2>
@@ -1245,7 +1276,7 @@ function posRender(){
   <div class="card">${B.closed.length?B.closed.map(t=>`<div class="mini"><div class="grow"><b>${esc(t.symbol)}</b>
       <div class="s">${esc(t.entry_date)} → ${esc(t.exit_date)} · ₹${fmt(t.entry)} → ₹${fmt(t.exit)} · ${esc(t.reason)}</div></div>
       <div style="text-align:right"><b class="${pc(t.ret_pct)}">${sgn(t.ret_pct,1)}%</b><div class="s ${pc(t.pnl)}">${inrPL(t.pnl)}</div></div></div>`).join(""):'<div class="s">Abhi tak koi trade close nahi hua.</div>'}</div>
-  <p class="note">Rules: 1% risk per trade, max 10 stocks, ek stock max 15%, cost 0.2% har side. Signal aaj close par → entry kal open par. Exit: stop loss ya close 50 EMA ke neeche. Model portfolio hai, investment advice nahi.</p>`;
+  <p class="note">Rules: 1% risk per trade, max 10 stocks, ek stock max 15%, cost 0.2% har side. Pivot/Positional/Wedge Pop: signal aaj close par → entry kal open. VCP: kal pivot tootne par buy-stop. Exit: stop loss, ya close exit line ke neeche (Pivot & Positional: 50 EMA, VCP: 50 SMA, Wedge Pop: 10 & 20 EMA ya 20% extension). Model portfolio hai, investment advice nahi.</p>`;
   el.querySelectorAll("[data-pb]").forEach(b=>b.onclick=()=>{posBook=+b.dataset.pb;posRender()});
   const ci=el.querySelector("#capIn"), ri=el.querySelector("#riskIn");
   const upd=()=>{const c=+ci.value, r=+ri.value; if(c>0) MYCAP.cap=c; if(r>0&&r<=5) MYCAP.risk=r; saveCap(); const y=window.scrollY; posRender(); window.scrollTo(0,y)};
@@ -1341,6 +1372,101 @@ def pivot_state(h, l, c, n=5):
             "uptrend": bool(uptrend), "ph": ph, "pl": pl, "stop": stop}
 
 
+def minervini_screen(h, l, c):
+    """Minervini weekly screen (user's checklist) for each bar. Returns a bool Series."""
+    s50, s200 = c.rolling(50).mean(), c.rolling(200).mean()
+    hi52, lo52 = h.rolling(252, min_periods=200).max(), l.rolling(252, min_periods=200).min()
+    rising = (s200 > s200.shift(21)) & (s200.shift(21) > s200.shift(42)) & (s200.shift(42) > s200.shift(63))
+    newhigh = (h >= hi52).astype(int).rolling(126).max() == 1
+    return ((c >= 0.75 * hi52) & (c >= 30) & rising & (s50 > s200) & (c > s200) & (c >= 2 * lo52) & newhigh).fillna(False)
+
+
+def vcp_state(df, n=3, maxbase=60, minbase=15, last=0.15):
+    """Minervini VCP as back-tested (2016-2026): weekly screen + 2+ shrinking contractions inside a 15-60 day base,
+    last contraction <= 15% on drying volume. Returns the buy-stop for TOMORROW (or None)."""
+    h, l, c, vol = df["High"], df["Low"], df["Close"], df["Volume"]
+    N = len(c)
+    if N < 270:
+        return None
+    t = N - 1
+    scr = minervini_screen(h, l, c)
+    # the screen of the last completed week is the one valid for tomorrow
+    d = c.index[t]
+    if d.weekday() == 4:
+        ok = bool(scr.iloc[t])
+    else:
+        prev = scr[c.index.to_period("W") < d.to_period("W")]
+        ok = bool(prev.iloc[-1]) if len(prev) else False
+    if not ok:
+        return None
+    hh, ll = h.values, l.values
+    seg = hh[t - maxbase:t + 1]
+    if np.isnan(seg).any():
+        return None
+    b0 = t - maxbase + int(np.argmax(seg))
+    if t - b0 < minbase:
+        return None
+
+    def is_sh(i):
+        w = hh[i - n:i + n + 1]
+        return len(w) == 2 * n + 1 and hh[i] == w.max() and (w == hh[i]).sum() == 1
+
+    def is_sl(i):
+        w = ll[i - n:i + n + 1]
+        return len(w) == 2 * n + 1 and ll[i] == w.min() and (w == ll[i]).sum() == 1
+    seq = [("H", b0, hh[b0])]
+    for i in range(b0 + 1, t - n + 1):
+        if is_sl(i):
+            if seq[-1][0] == "L":
+                if ll[i] < seq[-1][2]:
+                    seq[-1] = ("L", i, ll[i])
+            else:
+                seq.append(("L", i, ll[i]))
+        if is_sh(i):
+            if seq[-1][0] == "H":
+                if hh[i] > seq[-1][2] and seq[-1][1] != b0:
+                    seq[-1] = ("H", i, hh[i])
+            else:
+                seq.append(("H", i, hh[i]))
+    cons = [(1 - seq[k + 1][2] / seq[k][2], seq[k][1], seq[k + 1][1])
+            for k in range(len(seq) - 1) if seq[k][0] == "H" and seq[k + 1][0] == "L"]
+    if len(cons) < 2 or seq[-1][0] != "H":
+        return None
+    dd = [x[0] for x in cons]
+    if dd[-1] > last or any(dd[i + 1] >= dd[i] for i in range(len(dd) - 1)):
+        return None
+    piv = float(seq[-1][2])
+    if c.iloc[t] >= piv:
+        return None
+    s0, s1 = cons[-1][1], cons[-1][2]
+    v50 = vol.rolling(50).mean().iloc[t]
+    if not (np.nanmean(vol.values[s0:s1 + 1]) < v50):
+        return None
+    tr = pd.concat([h - l, (h - c.shift()).abs(), (l - c.shift()).abs()], axis=1).max(axis=1)
+    atr = float(tr.rolling(20).mean().iloc[t])
+    level = piv * 1.001
+    stop = level - min(2 * atr, 0.10 * level)
+    return {"pivot": round(piv, 2), "level": round(level, 2), "atr": round(atr, 2), "stop": round(stop, 2),
+            "cons": [round(x * 100, 1) for x in dd], "base": int(t - b0)}
+
+
+def wedge_pop(df):
+    """Oliver Kell 'Wedge Pop' as back-tested: 3+ of the last 5 closes below the 10 & 20 EMA, EMAs within 1.5%,
+    today closes above both on 1.3x volume, 20 EMA above 50 EMA. Stop: 5-day low -0.5%."""
+    h, l, c, vol = df["High"], df["Low"], df["Close"], df["Volume"]
+    if len(c) < 60:
+        return None
+    e10, e20, e50 = ema(c, 10), ema(c, 20), ema(c, 50)
+    below = ((c < e10) & (c < e20)).astype(int).rolling(5).sum() >= 3
+    v20 = vol.rolling(20).mean().shift(1)
+    ok = (below.iloc[-2] and abs(e10.iloc[-1] - e20.iloc[-1]) / e20.iloc[-1] < 0.015 and c.iloc[-1] > e10.iloc[-1]
+          and c.iloc[-1] > e20.iloc[-1] and vol.iloc[-1] >= 1.3 * v20.iloc[-1] and e20.iloc[-1] > e50.iloc[-1])
+    if not ok:
+        return None
+    stop = float(l.iloc[-5:].min()) * 0.995
+    return {"stop": round(stop, 2), "e10": round(float(e10.iloc[-1]), 2), "e20": round(float(e20.iloc[-1]), 2)}
+
+
 def trend_template(h, l, c):
     """Minervini trend template on daily data (all 5 points). Needs ~270 days of history."""
     if len(c) < 270:
@@ -1381,12 +1507,13 @@ def strategy_signals(period="2y"):
     iq = itab.set_index("Sector")
     scan_ind = {k for k, r in iq.iterrows() if r["Signal"].startswith(SCAN_SIGNALS)}
 
-    piv, watch, pos, exits = [], [], [], {}
+    piv, watch, pos, exits, vcp, wp = [], [], [], {}, [], []
     for sym, df in data.items():
         try:
             c, h, l = df["Close"], df["High"], df["Low"]
             e50 = ema(c, 50).iloc[-1]
-            exits[sym] = [round(float(c.iloc[-1]), 2), round(float(e50), 2)]
+            exits[sym] = [round(float(c.iloc[-1]), 2), round(float(e50), 2), round(float(ema(c, 10).iloc[-1]), 2),
+                          round(float(ema(c, 20).iloc[-1]), 2), round(float(c.rolling(50).mean().iloc[-1]), 2)]
             b = bench.reindex(c.index).ffill()
             rs3m = pct(c.iloc[-1], c.iloc[-64]) - pct(b.iloc[-1], b.iloc[-64])
             ind = uni.get(sym, "Other")
@@ -1400,6 +1527,15 @@ def strategy_signals(period="2y"):
             elif ps and ps["near"]:
                 watch.append({"s": sym, "ind": ind, "close": round(close, 2), "ph": round(ps["ph"], 2),
                               "dist": round((ps["ph"] / close - 1) * 100, 1), "rs": round(rs3m, 1)})
+            if "Volume" in df:
+                vs = vcp_state(df)
+                if vs:
+                    vcp.append({"s": sym, "ind": ind, "close": round(close, 2), "rs": round(rs3m, 1), **vs,
+                                "risk": round((vs["level"] - vs["stop"]) / vs["level"] * 100, 1)})
+                wps = wedge_pop(df)
+                if wps and 0.01 <= (close - wps["stop"]) / close <= 0.15:
+                    wp.append({"s": sym, "ind": ind, "close": round(close, 2), "rs": round(rs3m, 1), **wps,
+                               "risk": round((close - wps["stop"]) / close * 100, 1)})
             if ind in scan_ind and ind in ind_idx:
                 m = analyse_stock(df, ind_idx[ind], bench, iq.loc[ind, "Quadrant"])
                 if m["Positional score"] >= 75 and m["Positional setup"] in POS_SETUPS:
@@ -1413,6 +1549,8 @@ def strategy_signals(period="2y"):
     piv.sort(key=lambda x: (not x["tt"], -x["rs"]))
     pos.sort(key=lambda x: (-x["score"], -x["rs"]))
     watch.sort(key=lambda x: x["dist"])
+    vcp.sort(key=lambda x: -x["rs"])
+    wp.sort(key=lambda x: -x["rs"])
     hist = pd.DataFrame({"p20": p20, "p50": p50, "p200": p200}).dropna().tail(260)
     out = {
         "asOf": f"{closes.index[-1]:%d %b %Y}",
@@ -1422,11 +1560,12 @@ def strategy_signals(period="2y"):
         "hist": [{"d": f"{d:%Y-%m-%d}", "p20": round(r.p20, 1), "p50": round(r.p50, 1), "p200": round(r.p200, 1)}
                  for d, r in hist.iterrows()],
         "pivotOn": bool(p200.iloc[-1] >= 50), "posOn": bool(p20.iloc[-1] >= 50),
-        "pivot": piv, "pos": pos, "watch": watch[:40], "exits": exits,
+        "pivot": piv, "pos": pos, "watch": watch[:40], "exits": exits, "vcp": vcp, "wp": wp,
         "industries": [{"ind": k, "q": r["Quadrant"], "sig": r["Signal"]} for k, r in iq.iterrows()],
     }
     print(f"  breadth 20/50/200 DMA: {out['breadth']}  | pivot signals {len(piv)} ({'ON' if out['pivotOn'] else 'OFF'})"
-          f" | positional signals {len(pos)} ({'ON' if out['posOn'] else 'OFF'}) | watchlist {len(watch)}")
+          f" | positional signals {len(pos)} ({'ON' if out['posOn'] else 'OFF'}) | watchlist {len(watch)}"
+          f" | VCP buy-stops {len(vcp)} | wedge pops {len(wp)}")
     return out
 
 

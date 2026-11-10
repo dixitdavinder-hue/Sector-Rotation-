@@ -75,12 +75,12 @@ document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{view=b.datas
 
 function brTile(lbl,k){const v=L.breadth[k],o=L.breadth0[k];return `<div><span>${lbl}</span><b class="${v>=50?'pos':'neg'}">${fmt(v,1)}%</b><span class="${pc(v-o)}">${sg(v-o)} aaj</span></div>`}
 function posCard(p){
-  const cls=p.status==="STOP HIT"?"hl":p.status.startsWith("50 EMA")?"ha":"";
-  const pill=p.status==="HOLD"?"g":p.status==="STOP HIT"?"r":"a";
+  const cls=p.status==="STOP HIT"?"hl":p.status.endsWith("ke neeche")?"ha":"";
+  const pill=p.status==="HOLD"||p.status.startsWith("20%")?"g":p.status==="STOP HIT"?"r":"a";
   return `<div class="card ${cls}"><div class="row"><div class="grow"><div class="t">${esc(p.s)}</div><div class="s">${esc(p.book)} · ${p.qty} qty · entry ₹${fmt(p.entry)} (${esc(p.date)})</div></div><span class="pill ${pill}">${esc(p.status)}</span></div>
   <div class="row" style="margin-top:8px;align-items:flex-end"><div class="grow"><span class="big ${pc(p.ret)}">${sg(p.ret,1)}%</span> <span class="s ${pc(p.pnl)}">${inr(p.pnl)}</span></div>
   <div style="text-align:right"><b>₹${fmt(p.ltp)}</b><div class="s ${pc(p.day)}">aaj ${sg(p.day,2)}%</div></div></div>
-  <div class="grid"><div><span>Stop loss</span><b>₹${fmt(p.stop)}</b></div><div><span>Stop se door</span><b class="${p.dstop<4?'neg':''}">${fmt(p.dstop,1)}%</b></div><div><span>50 EMA</span><b>₹${fmt(p.ema)}</b></div>
+  <div class="grid"><div><span>Stop loss</span><b>₹${fmt(p.stop)}</b></div><div><span>Stop se door</span><b class="${p.dstop<4?'neg':''}">${fmt(p.dstop,1)}%</b></div><div><span>${esc(p.exl||"50 EMA")}</span><b>₹${fmt(p.ema)}</b></div>
   <div><span>Aaj high</span><b>₹${fmt(p.high)}</b></div><div><span>Aaj low</span><b>₹${fmt(p.low)}</b></div><div><span>Value</span><b>₹${fmt(p.qty*p.ltp,0)}</b></div></div></div>`}
 function vPos(){
   if(!L.books.length) return '<div class="empty">Positions nahi mili. GitHub positions.json check karein.</div>';
@@ -105,6 +105,10 @@ function vSig(){
    <span class="s grow" style="text-align:right">${L.confirm?'3:15 ke baad: signals confirm':'Din chal raha hai: signals "forming", close par confirm'}</span></div></div>
    <h2>Pivot breakout (${L.pivot.length})</h2><div class="note">${esc(L.rules.pivot)}</div>${sigList(L.pivot,'pivot',L.on.pivot)}
    <h2>Positional (${L.pos.length})</h2><div class="note">${esc(L.rules.positional)}</div>${sigList(L.pos,'pos',L.on.positional)}
+   <h2>Minervini VCP: aaj ke buy-stop (${(L.vcp||[]).length})</h2><div class="note">${esc(L.rules.vcp||"")}</div>
+   ${(L.vcp||[]).length?L.vcp.map(x=>`<div class="card" style="${x.held?'opacity:.55':''}"><div class="row"><div class="grow"><div class="t">${esc(x.s)}</div><div class="s">${esc(x.ind)} · VCP ${x.cons.map(c=>c+'%').join(' → ')}</div></div><span class="pill ${x.trig?'g':'m'}">${x.trig?'TRIGGER':'wait'}</span></div>${x.held?'':myLine(x.level,x.stop)}
+     <div class="grid"><div><span>Buy-stop</span><b>₹${fmt(x.level)}</b></div><div><span>Live</span><b>₹${fmt(x.ltp)}</b><span class="${pc(x.chg)}">${sg(x.chg,2)}%</span></div><div><span>Stop (approx)</span><b>₹${fmt(x.stop)}</b></div></div></div>`).join(""):'<div class="card s">Aaj koi VCP buy-stop nahi.</div>'}
+   <h2>Wedge Pop (${(L.wp||[]).length})</h2><div class="note">${esc(L.rules.wp||"")}</div>${sigList(L.wp||[],'wp',true)}
    <h2>Breakout ke kareeb (${L.watch.length})</h2><div class="card">${L.watch.length?L.watch.map(w=>`<div class="li"><div class="grow"><b>${esc(w.s)}</b><div class="s">${esc(w.ind)} · pivot ₹${fmt(w.ph)}</div></div><div style="text-align:right"><b>${fmt(w.dist,1)}% door</b><div class="s ${pc(w.chg)}">${sg(w.chg,2)}%</div></div></div>`).join(""):'<div class="s">Koi nahi.</div>'}</div>`}
 function tbl(rows,cols){return `<table><tr>${cols.map(c=>`<th>${c[0]}</th>`).join("")}</tr>${rows.map(r=>`<tr>${cols.map(c=>`<td>${c[1](r)}</td>`).join("")}</tr>`).join("")}</table>`}
 function vScan(){

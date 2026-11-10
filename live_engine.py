@@ -44,7 +44,9 @@ RULES = {
     "positional": "3:15-3:25 PM ke beech BUY (aaj ke close ke paas). "
                   "(Backtest: aaj close 20.6-21.0% CAGR vs kal open 18.8%)",
     "stop": "Stop loss live: price stop ke neeche gaya to exit (backtest mein bhi din ke andar).",
-    "ema": "50 EMA: close 50 EMA ke neeche band ho to exit. 3:15 ke baad warning ko confirm maano.",
+    "ema": "Exit line: Pivot/Positional 50 EMA, VCP 50 SMA, Wedge Pop 10 & 20 EMA. Close iske neeche ho to exit (3:15 ke baad confirm).",
+    "vcp": "VCP: kal ke list ke stocks ka pivot aaj toote to buy-stop trigger (backtest mein yahi best tha). Stop = entry - 2xATR, max 10%.",
+    "wp": "Wedge Pop: close par confirm -> kal open par BUY. Breadth filter nahi.",
 }
 
 
@@ -211,7 +213,15 @@ def build_snapshot(hist, live, quotes, strat, base, book, uni, alerts, seen, sta
             s = p["s"]; q = quotes.get(s); df = live.get(s)
             ltp = q["ltp"] if q else p["now"]
             lo = q["l"] if q else ltp
-            e50 = clean(S.ema(df["Close"], 50).iloc[-1]) if df is not None else p.get("ema")
+            exl = p.get("exl") or "50 EMA"
+            if df is None:
+                e50 = p.get("ema")
+            elif exl == "50 SMA":
+                e50 = clean(df["Close"].rolling(50).mean().iloc[-1])
+            elif exl.startswith("10 & 20"):
+                e50 = clean(min(S.ema(df["Close"], 10).iloc[-1], S.ema(df["Close"], 20).iloc[-1]))
+            else:
+                e50 = clean(S.ema(df["Close"], 50).iloc[-1])
             pc = prev.get(s, p["now"])
             val = p["qty"] * ltp; eq += val; day += p["qty"] * (ltp - pc)
             st = "HOLD"
@@ -219,16 +229,20 @@ def build_snapshot(hist, live, quotes, strat, base, book, uni, alerts, seen, sta
                 st = "STOP HIT"
                 stamp("stop", f"stop-{s}", f"{s}: STOP LOSS hit (low ₹{lo:,.2f} ≤ stop ₹{p['stop']:,.2f}) → exit", "r")
             elif e50 and ltp < e50:
-                st = "50 EMA ke neeche"
+                st = f"{exl} ke neeche"
                 if confirm:
-                    stamp("ema", f"ema-{s}", f"{s}: close 50 EMA (₹{e50:,.2f}) ke neeche ja raha hai → exit signal", "a")
+                    stamp("ema", f"ema-{s}", f"{s}: close {exl} (₹{e50:,.2f}) ke neeche ja raha hai → exit signal", "a")
+            elif exl.startswith("10 & 20") and df is not None and ltp > S.ema(df["Close"], 20).iloc[-1] * 1.2:
+                st = "20% extension (profit)"
+                if confirm:
+                    stamp("ext", f"ext-{s}", f"{s}: 20 EMA se 20% upar → Wedge Pop profit exit (kal open)", "g")
             if p.get("exit"):
                 st = "EXIT (aaj open par)"
             rows.append(dict(s=s, book=b["label"], qty=p["qty"], entry=p["entry"], date=p["date"], ltp=clean(ltp),
                              day=chg(s), ret=clean((ltp / p["entry"] - 1) * 100),
                              pnl=clean(p["qty"] * (ltp * 0.998 - p["entry"] * 1.002), 0),
                              stop=p["stop"], dstop=clean((ltp / p["stop"] - 1) * 100, 1), ema=e50,
-                             high=clean(q["h"]) if q else None, low=clean(lo), status=st))
+                             high=clean(q["h"]) if q else None, low=clean(lo), status=st, exl=exl))
         tot_eq += eq; tot_cap += b["start"]; tot_day += day
         today_orders = [dict(s=o["s"], qty=o["qty"], stop=o["stop"], ltp=clean(quotes[o["s"]]["ltp"]) if o["s"] in quotes else None,
                              open=clean(quotes[o["s"]]["o"]) if o["s"] in quotes else None, info=o.get("info", ""))
@@ -252,6 +266,19 @@ def build_snapshot(hist, live, quotes, strat, base, book, uni, alerts, seen, sta
         pos.append(x)
         if confirm and pos_on and not x["held"]:
             stamp("pos", f"pos-{x['s']}", f"POSITIONAL signal: {x['s']} ₹{x['close']:,.2f} (stop ₹{x['stop']:,.2f}) → 3:15-3:25 PM BUY", "g")
+    vcp = []
+    for x in base.get("vcp", []):
+        q = quotes.get(x["s"])
+        trig = bool(q and q["h"] > x["level"])
+        vcp.append(dict(x, ltp=clean(q["ltp"]) if q else None, chg=chg(x["s"]), trig=trig, held=x["s"] in held))
+        if trig:
+            stamp("vcp", f"vcp-{x['s']}", f"VCP BUY-STOP trigger: {x['s']} ne pivot ₹{x['level']:,.2f} paar kiya (stop ≈ entry − 2×ATR, max 10%)", "g")
+    wp = []
+    for x in strat.get("wp", []):
+        x = dict(x, chg=chg(x["s"]), held=x["s"] in held, state="confirm" if confirm else "forming")
+        wp.append(x)
+        if confirm and not x["held"]:
+            stamp("wp", f"wp-{x['s']}", f"WEDGE POP: {x['s']} ₹{x['close']:,.2f} (stop ₹{x['stop']:,.2f}) → kal open par BUY", "g")
     for k, old in (("p200", br0["p200"]), ("p20", br0["p20"])):
         if (old < 50) != (br[k] < 50):
             nm = "Pivot filter (200 DMA)" if k == "p200" else "Positional filter (20 DMA)"
@@ -279,7 +306,7 @@ def build_snapshot(hist, live, quotes, strat, base, book, uni, alerts, seen, sta
         "total": dict(equity=clean(tot_eq, 0), start=tot_cap, ret=clean((tot_eq / tot_cap - 1) * 100) if tot_cap else None,
                       day=clean(tot_day, 0)),
         "books": books, "alerts": alerts,
-        "pivot": piv, "pos": pos, "watch": [dict(w, chg=chg(w["s"])) for w in strat["watch"][:25]],
+        "pivot": piv, "pos": pos, "vcp": vcp, "wp": wp, "watch": [dict(w, chg=chg(w["s"])) for w in strat["watch"][:25]],
         "industries": strat["industries"],
         "scan": {"adv": adv, "dec": dec, "gainers": top("chg", False), "losers": top("chg", True),
                  "rs": top("r3m", False), "near52": top("hi52", False)},
