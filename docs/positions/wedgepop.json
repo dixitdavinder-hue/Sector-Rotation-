@@ -2,7 +2,28 @@
  "cash": 500000,
  "start_capital": 500000,
  "positions": {},
- "pending_buys": [],
+ "pending_buys": [
+  {
+   "symbol": "BBOX",
+   "stop": 787.74,
+   "est_price": 868.2,
+   "est_qty": 62,
+   "industry": "Information Technology",
+   "info": "RS 17.8%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  },
+  {
+   "symbol": "COHANCE",
+   "stop": 422.88,
+   "est_price": 464.1,
+   "est_qty": 121,
+   "industry": "Healthcare",
+   "info": "RS 6.8%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  }
+ ],
  "pending_sells": {},
- "last_date": "2026-11-09"
+ "last_date": "2026-11-11"
 }

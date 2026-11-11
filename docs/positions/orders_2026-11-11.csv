@@ -1,0 +1,3 @@
+book,action,symbol,qty,stop,note
+wedgepop,BUY,BBOX,62,787.74,skip if it opens at/below 787.74
+wedgepop,BUY,COHANCE,121,422.88,skip if it opens at/below 422.88

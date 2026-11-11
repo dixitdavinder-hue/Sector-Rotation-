@@ -1,0 +1,29 @@
+PAPER TRADING  -  data up to 2026-11-11
+================================================================
+Breadth: 20 DMA 80.6% | 50 DMA 58.5% | 200 DMA 51.3%
+Pivot breakout filter: ON | Positional filter: ON | VCP + Wedge Pop: no breadth filter
+
+--- PIVOT BREAKOUT + VCP: equity Rs 500,000  (+0.0% since start)  cash Rs 500,000
+  No orders for tomorrow.
+  Open positions: 0
+
+--- POSITIONAL: equity Rs 509,256  (+1.9% since start)  cash Rs 115,359
+  No orders for tomorrow.
+  Open positions: 10
+    ATHERENERG      25 @   1818.00 (2026-11-05)  now   1868.20   +2.8%  stop   1619.20  50 EMA   1571.79
+    ENGINERSIN     126 @    304.20 (2026-11-05)  now    311.20   +2.3%  stop    264.75  50 EMA    274.86
+    GLENMARK        14 @   2538.00 (2026-11-05)  now   2677.20   +5.5%  stop   2204.14  50 EMA   2363.27
+    LAURUSLABS      17 @   2328.30 (2026-11-05)  now   2429.00   +4.3%  stop   2044.94  50 EMA   2073.92
+    NAVINFLUOR       4 @   8890.00 (2026-11-05)  now   9659.00   +8.7%  stop   7730.80  50 EMA   8401.08
+    PPLPHARMA      158 @    240.80 (2026-11-05)  now    245.25   +1.8%  stop    209.23  50 EMA    212.83
+    SONACOMS        44 @    900.00 (2026-11-05)  now    925.00   +2.8%  stop    786.46  50 EMA    824.63
+    TECHM           20 @   1814.00 (2026-11-05)  now   1788.50   -1.4%  stop   1569.04  50 EMA   1664.34
+    TVSMOTOR         8 @   4390.00 (2026-11-05)  now   4560.00   +3.9%  stop   3811.46  50 EMA   4155.77
+    WELSPUNLIV     152 @    265.62 (2026-11-05)  now    255.73   -3.7%  stop    232.82  50 EMA    219.31
+
+--- WEDGE POP: equity Rs 500,000  (+0.0% since start)  cash Rs 500,000
+  BUY  BBOX x ~62 at tomorrow's open (close 868.2), stop 787.74  [Information Technology, RS 17.8%, Wedge Pop]
+  BUY  COHANCE x ~121 at tomorrow's open (close 464.1), stop 422.88  [Healthcare, RS 6.8%, Wedge Pop]
+  Open positions: 0
+
+TOTAL: Rs 1,509,256 on Rs 1,500,000  (+0.6%)
