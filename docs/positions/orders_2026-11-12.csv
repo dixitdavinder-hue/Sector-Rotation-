@@ -1,0 +1,6 @@
+book,action,symbol,qty,stop,note
+pivot,BUY-STOP,CPPLUS,12,4016.53,only if price trades above 4423.02; stop = fill - 2xATR (max 10%)
+pivot,BUY,CUPID,108,338.62,skip if it opens at/below 338.62
+pivot,BUY,GABRIEL,25,1444.26,skip if it opens at/below 1444.26
+pivot,BUY,HONASA,84,436.17,skip if it opens at/below 436.17
+wedgepop,BUY,GRAPHITE,57,711.92,skip if it opens at/below 711.92

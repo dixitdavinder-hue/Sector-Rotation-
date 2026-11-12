@@ -1,29 +1,38 @@
 {
- "cash": 500000,
+ "cash": 395285.0897044678,
  "start_capital": 500000,
- "positions": {},
- "pending_buys": [
-  {
-   "symbol": "BBOX",
+ "positions": {
+  "BBOX": {
+   "qty": 54,
+   "entry": 880.0,
    "stop": 787.74,
-   "est_price": 868.2,
-   "est_qty": 62,
+   "entry_date": "2026-11-12",
    "industry": "Information Technology",
-   "info": "RS 17.8%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   },
-  {
-   "symbol": "COHANCE",
+  "COHANCE": {
+   "qty": 123,
+   "entry": 463.3,
    "stop": 422.88,
-   "est_price": 464.1,
-   "est_qty": 121,
+   "entry_date": "2026-11-12",
    "industry": "Healthcare",
-   "info": "RS 6.8%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  }
+ },
+ "pending_buys": [
+  {
+   "symbol": "GRAPHITE",
+   "stop": 711.92,
+   "est_price": 798.7,
+   "est_qty": 57,
+   "industry": "Capital Goods",
+   "info": "RS 11.6%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   }
  ],
  "pending_sells": {},
- "last_date": "2026-11-11"
+ "last_date": "2026-11-12"
 }

@@ -1,0 +1,33 @@
+PAPER TRADING  -  data up to 2026-11-12
+================================================================
+Breadth: 20 DMA 83.4% | 50 DMA 62.8% | 200 DMA 54.0%
+Pivot breakout filter: ON | Positional filter: ON | VCP + Wedge Pop: no breadth filter
+
+--- PIVOT BREAKOUT + VCP: equity Rs 500,000  (+0.0% since start)  cash Rs 500,000
+  BUY-STOP CPPLUS x ~12 above 4423.02 tomorrow, stop ~4016.53  [Capital Goods, RS 12.9%, VCP 18.6/10.6%]
+  BUY  CUPID x ~108 at tomorrow's open (close 384.8), stop 338.62  [Fast Moving Consumer Goods, RS 41.4%]
+  BUY  GABRIEL x ~25 at tomorrow's open (close 1641.2), stop 1444.26  [Automobile and Auto Components, RS 12.0%]
+  BUY  HONASA x ~84 at tomorrow's open (close 495.65), stop 436.17  [Fast Moving Consumer Goods, RS 9.0%]
+  Open positions: 0
+
+--- POSITIONAL: equity Rs 508,682  (+1.7% since start)  cash Rs 115,359
+  No orders for tomorrow.
+  Open positions: 10
+    ATHERENERG      25 @   1818.00 (2026-11-05)  now   1923.00   +5.8%  stop   1619.20  50 EMA   1585.56
+    ENGINERSIN     126 @    304.20 (2026-11-05)  now    307.55   +1.1%  stop    264.75  50 EMA    276.14
+    GLENMARK        14 @   2538.00 (2026-11-05)  now   2659.80   +4.8%  stop   2204.14  50 EMA   2374.90
+    LAURUSLABS      17 @   2328.30 (2026-11-05)  now   2400.00   +3.1%  stop   2044.94  50 EMA   2086.71
+    NAVINFLUOR       4 @   8890.00 (2026-11-05)  now   9969.00  +12.1%  stop   7730.80  50 EMA   8462.57
+    PPLPHARMA      158 @    240.80 (2026-11-05)  now    245.07   +1.8%  stop    209.23  50 EMA    214.09
+    SONACOMS        44 @    900.00 (2026-11-05)  now    926.00   +2.9%  stop    786.46  50 EMA    828.60
+    TECHM           20 @   1814.00 (2026-11-05)  now   1774.00   -2.2%  stop   1569.04  50 EMA   1668.64
+    TVSMOTOR         8 @   4390.00 (2026-11-05)  now   4500.00   +2.5%  stop   3811.46  50 EMA   4169.27
+    WELSPUNLIV     152 @    265.62 (2026-11-05)  now    247.62   -6.8%  stop    232.82  50 EMA    220.42
+
+--- WEDGE POP: equity Rs 501,023  (+0.2% since start)  cash Rs 395,285
+  BUY  GRAPHITE x ~57 at tomorrow's open (close 798.7), stop 711.92  [Capital Goods, RS 11.6%, Wedge Pop]
+  Open positions: 2
+    BBOX            54 @    880.00 (2026-11-12)  now    883.80   +0.4%  stop    787.74  10 & 20 EMA    836.31
+    COHANCE        123 @    463.30 (2026-11-12)  now    471.65   +1.8%  stop    422.88  10 & 20 EMA    454.66
+
+TOTAL: Rs 1,509,705 on Rs 1,500,000  (+0.6%)
