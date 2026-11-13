@@ -1,5 +1,5 @@
 {
- "cash": 395285.0897044678,
+ "cash": 349679.5607044678,
  "start_capital": 500000,
  "positions": {
   "BBOX": {
@@ -19,20 +19,39 @@
    "industry": "Healthcare",
    "rule": "wedge",
    "setup": "wp"
+  },
+  "GRAPHITE": {
+   "qty": 57,
+   "entry": 798.5,
+   "stop": 711.92,
+   "entry_date": "2026-11-13",
+   "industry": "Capital Goods",
+   "rule": "wedge",
+   "setup": "wp"
   }
  },
  "pending_buys": [
   {
-   "symbol": "GRAPHITE",
-   "stop": 711.92,
-   "est_price": 798.7,
-   "est_qty": 57,
-   "industry": "Capital Goods",
-   "info": "RS 11.6%, Wedge Pop",
+   "symbol": "GESHIP",
+   "stop": 1387.93,
+   "est_price": 1518.0,
+   "est_qty": 38,
+   "industry": "Services",
+   "info": "RS 22.3%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  },
+  {
+   "symbol": "PWL",
+   "stop": 125.52,
+   "est_price": 131.58,
+   "est_qty": 570,
+   "industry": "Consumer Services",
+   "info": "RS 8.9%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   }
  ],
  "pending_sells": {},
- "last_date": "2026-11-12"
+ "last_date": "2026-11-13"
 }

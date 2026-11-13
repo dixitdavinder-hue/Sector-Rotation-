@@ -1,52 +1,50 @@
 {
- "cash": 500000,
+ "cash": 371307.4297191773,
  "start_capital": 500000,
- "positions": {},
+ "positions": {
+  "CUPID": {
+   "qty": 99,
+   "entry": 388.9,
+   "stop": 338.62,
+   "entry_date": "2026-11-13",
+   "industry": "Fast Moving Consumer Goods",
+   "rule": "ema50",
+   "setup": "pivot"
+  },
+  "GABRIEL": {
+   "qty": 30,
+   "entry": 1610.0,
+   "stop": 1444.26,
+   "entry_date": "2026-11-13",
+   "industry": "Automobile and Auto Components",
+   "rule": "ema50",
+   "setup": "pivot"
+  },
+  "HONASA": {
+   "qty": 84,
+   "entry": 495.65,
+   "stop": 436.17,
+   "entry_date": "2026-11-13",
+   "industry": "Fast Moving Consumer Goods",
+   "rule": "ema50",
+   "setup": "pivot"
+  }
+ },
  "pending_buys": [
   {
    "symbol": "CPPLUS",
-   "stop": 4016.53,
+   "stop": 4030.9,
    "est_price": 4423.02,
    "est_qty": 12,
    "industry": "Capital Goods",
-   "info": "RS 12.9%, VCP 18.6/10.6%",
+   "info": "RS 9.1%, VCP 18.6/10.6%",
    "rule": "sma50",
    "setup": "vcp",
    "type": "stop",
    "level": 4423.02,
-   "atr": 203.24
-  },
-  {
-   "symbol": "CUPID",
-   "stop": 338.62,
-   "est_price": 384.8,
-   "est_qty": 108,
-   "industry": "Fast Moving Consumer Goods",
-   "info": "RS 41.4%",
-   "rule": "ema50",
-   "setup": "pivot"
-  },
-  {
-   "symbol": "GABRIEL",
-   "stop": 1444.26,
-   "est_price": 1641.2,
-   "est_qty": 25,
-   "industry": "Automobile and Auto Components",
-   "info": "RS 12.0%",
-   "rule": "ema50",
-   "setup": "pivot"
-  },
-  {
-   "symbol": "HONASA",
-   "stop": 436.17,
-   "est_price": 495.65,
-   "est_qty": 84,
-   "industry": "Fast Moving Consumer Goods",
-   "info": "RS 9.0%",
-   "rule": "ema50",
-   "setup": "pivot"
+   "atr": 196.06
   }
  ],
  "pending_sells": {},
- "last_date": "2026-11-12"
+ "last_date": "2026-11-13"
 }

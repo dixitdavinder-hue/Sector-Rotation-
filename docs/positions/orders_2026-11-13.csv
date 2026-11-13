@@ -1,0 +1,4 @@
+book,action,symbol,qty,stop,note
+pivot,BUY-STOP,CPPLUS,12,4030.9,only if price trades above 4423.02; stop = fill - 2xATR (max 10%)
+wedgepop,BUY,GESHIP,38,1387.93,skip if it opens at/below 1387.93
+wedgepop,BUY,PWL,570,125.52,skip if it opens at/below 125.52

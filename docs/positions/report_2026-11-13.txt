@@ -1,0 +1,38 @@
+PAPER TRADING  -  data up to 2026-11-13
+================================================================
+Breadth: 20 DMA 81.8% | 50 DMA 59.3% | 200 DMA 50.7%
+Pivot breakout filter: ON | Positional filter: ON | VCP + Wedge Pop: no breadth filter
+
+--- PIVOT BREAKOUT + VCP: equity Rs 497,454  (-0.5% since start)  cash Rs 371,307
+  BUY-STOP CPPLUS x ~12 above 4423.02 tomorrow, stop ~4030.9  [Capital Goods, RS 9.1%, VCP 18.6/10.6%]
+  Open positions: 3
+    CUPID           99 @    388.90 (2026-11-13)  now    377.80   -2.9%  stop    338.62  50 EMA    315.51
+    GABRIEL         30 @   1610.00 (2026-11-13)  now   1552.70   -3.6%  stop   1444.26  50 EMA   1401.94
+    HONASA          84 @    495.65 (2026-11-13)  now    501.95   +1.3%  stop    436.17  50 EMA    462.46
+
+--- POSITIONAL: equity Rs 509,864  (+2.0% since start)  cash Rs 115,359
+  No orders for tomorrow.
+  Open positions: 10
+    ATHERENERG      25 @   1818.00 (2026-11-05)  now   1945.00   +7.0%  stop   1619.20  50 EMA   1599.65
+    ENGINERSIN     126 @    304.20 (2026-11-05)  now    312.45   +2.7%  stop    264.75  50 EMA    277.57
+    GLENMARK        14 @   2538.00 (2026-11-05)  now   2640.00   +4.0%  stop   2204.14  50 EMA   2385.30
+    LAURUSLABS      17 @   2328.30 (2026-11-05)  now   2424.00   +4.1%  stop   2044.94  50 EMA   2099.93
+    NAVINFLUOR       4 @   8890.00 (2026-11-05)  now  10002.00  +12.5%  stop   7730.80  50 EMA   8522.94
+    PPLPHARMA      158 @    240.80 (2026-11-05)  now    244.54   +1.6%  stop    209.23  50 EMA    215.29
+    SONACOMS        44 @    900.00 (2026-11-05)  now    919.00   +2.1%  stop    786.46  50 EMA    832.15
+    TECHM           20 @   1814.00 (2026-11-05)  now   1764.00   -2.8%  stop   1569.04  50 EMA   1672.38
+    TVSMOTOR         8 @   4390.00 (2026-11-05)  now   4495.00   +2.4%  stop   3811.46  50 EMA   4182.04
+    WELSPUNLIV     152 @    265.62 (2026-11-05)  now    250.14   -5.8%  stop    232.82  50 EMA    221.58
+
+--- WEDGE POP: equity Rs 500,322  (+0.1% since start)  cash Rs 349,680
+  BUY  GESHIP x ~38 at tomorrow's open (close 1518.0), stop 1387.93  [Services, RS 22.3%, Wedge Pop]
+  BUY  PWL x ~570 at tomorrow's open (close 131.58), stop 125.52  [Consumer Services, RS 8.9%, Wedge Pop]
+  Open positions: 3
+    BBOX            54 @    880.00 (2026-11-12)  now    900.70   +2.4%  stop    787.74  10 & 20 EMA    842.45
+    COHANCE        123 @    463.30 (2026-11-12)  now    458.60   -1.0%  stop    422.88  10 & 20 EMA    455.04
+    GRAPHITE        57 @    798.50 (2026-11-13)  now    799.95   +0.2%  stop    711.92  10 & 20 EMA    762.23
+
+TOTAL: Rs 1,507,640 on Rs 1,500,000  (+0.5%)
+
+Notes:
+  - pivot: CPPLUS VCP pivot 4423.02 not taken out on 2026-11-13 -> order cancelled
