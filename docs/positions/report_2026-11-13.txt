@@ -33,6 +33,3 @@ Pivot breakout filter: ON | Positional filter: ON | VCP + Wedge Pop: no breadth 
     GRAPHITE        57 @    798.50 (2026-11-13)  now    799.95   +0.2%  stop    711.92  10 & 20 EMA    762.23
 
 TOTAL: Rs 1,507,640 on Rs 1,500,000  (+0.5%)
-
-Notes:
-  - pivot: CPPLUS VCP pivot 4423.02 not taken out on 2026-11-13 -> order cancelled
