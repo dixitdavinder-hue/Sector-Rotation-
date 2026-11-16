@@ -1,5 +1,5 @@
 {
- "cash": 349679.5607044678,
+ "cash": 219519.11892053223,
  "start_capital": 500000,
  "positions": {
   "BBOX": {
@@ -28,30 +28,40 @@
    "industry": "Capital Goods",
    "rule": "wedge",
    "setup": "wp"
+  },
+  "GESHIP": {
+   "qty": 36,
+   "entry": 1526.1,
+   "stop": 1387.93,
+   "entry_date": "2026-11-16",
+   "industry": "Services",
+   "rule": "wedge",
+   "setup": "wp"
+  },
+  "PWL": {
+   "qty": 566,
+   "entry": 132.44,
+   "stop": 125.52,
+   "entry_date": "2026-11-16",
+   "industry": "Consumer Services",
+   "rule": "wedge",
+   "setup": "wp"
   }
  },
  "pending_buys": [
   {
-   "symbol": "GESHIP",
-   "stop": 1387.93,
-   "est_price": 1518.0,
-   "est_qty": 38,
-   "industry": "Services",
-   "info": "RS 22.3%, Wedge Pop",
-   "rule": "wedge",
-   "setup": "wp"
-  },
-  {
-   "symbol": "PWL",
-   "stop": 125.52,
-   "est_price": 131.58,
-   "est_qty": 570,
-   "industry": "Consumer Services",
-   "info": "RS 8.9%, Wedge Pop",
+   "symbol": "VIJAYA",
+   "stop": 1388.03,
+   "est_price": 1487.5,
+   "est_qty": 50,
+   "industry": "Healthcare",
+   "info": "RS 3.7%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   }
  ],
- "pending_sells": {},
- "last_date": "2026-11-13"
+ "pending_sells": {
+  "PWL": "close < 10 & 20 EMA"
+ },
+ "last_date": "2026-11-16"
 }
