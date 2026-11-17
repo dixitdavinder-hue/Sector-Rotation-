@@ -1,5 +1,5 @@
 {
- "cash": 219519.11892053223,
+ "cash": 220865.26792053226,
  "start_capital": 500000,
  "positions": {
   "BBOX": {
@@ -38,30 +38,19 @@
    "rule": "wedge",
    "setup": "wp"
   },
-  "PWL": {
-   "qty": 566,
-   "entry": 132.44,
-   "stop": 125.52,
-   "entry_date": "2026-11-16",
-   "industry": "Consumer Services",
-   "rule": "wedge",
-   "setup": "wp"
-  }
- },
- "pending_buys": [
-  {
-   "symbol": "VIJAYA",
+  "VIJAYA": {
+   "qty": 48,
+   "entry": 1490.0,
    "stop": 1388.03,
-   "est_price": 1487.5,
-   "est_qty": 50,
+   "entry_date": "2026-11-17",
    "industry": "Healthcare",
-   "info": "RS 3.7%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   }
- ],
- "pending_sells": {
-  "PWL": "close < 10 & 20 EMA"
  },
- "last_date": "2026-11-16"
+ "pending_buys": [],
+ "pending_sells": {
+  "COHANCE": "close < 10 & 20 EMA"
+ },
+ "last_date": "2026-11-17"
 }
