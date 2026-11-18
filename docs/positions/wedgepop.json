@@ -1,5 +1,5 @@
 {
- "cash": 220865.26792053226,
+ "cash": 276350.0759205323,
  "start_capital": 500000,
  "positions": {
   "BBOX": {
@@ -8,15 +8,6 @@
    "stop": 787.74,
    "entry_date": "2026-11-12",
    "industry": "Information Technology",
-   "rule": "wedge",
-   "setup": "wp"
-  },
-  "COHANCE": {
-   "qty": 123,
-   "entry": 463.3,
-   "stop": 422.88,
-   "entry_date": "2026-11-12",
-   "industry": "Healthcare",
    "rule": "wedge",
    "setup": "wp"
   },
@@ -49,8 +40,6 @@
   }
  },
  "pending_buys": [],
- "pending_sells": {
-  "COHANCE": "close < 10 & 20 EMA"
- },
- "last_date": "2026-11-17"
+ "pending_sells": {},
+ "last_date": "2026-11-18"
 }

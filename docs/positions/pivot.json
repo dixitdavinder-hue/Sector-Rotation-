@@ -1,5 +1,5 @@
 {
- "cash": 330444.86771917733,
+ "cash": 289761.06125933846,
  "start_capital": 500000,
  "positions": {
   "CUPID": {
@@ -37,33 +37,45 @@
    "industry": "Fast Moving Consumer Goods",
    "rule": "ema50",
    "setup": "pivot"
+  },
+  "KARURVYSYA": {
+   "qty": 103,
+   "entry": 394.2,
+   "stop": 346.28,
+   "entry_date": "2026-11-18",
+   "industry": "Financial Services",
+   "rule": "ema50",
+   "setup": "pivot"
   }
  },
  "pending_buys": [
   {
    "symbol": "CPPLUS",
-   "stop": 4051.29,
+   "stop": 4050.12,
    "est_price": 4423.02,
    "est_qty": 13,
    "industry": "Capital Goods",
-   "info": "RS 16.3%, VCP 18.6/10.6%",
+   "info": "RS 21.9%, VCP 18.6/10.6%",
    "rule": "sma50",
    "setup": "vcp",
    "type": "stop",
    "level": 4423.02,
-   "atr": 185.87
+   "atr": 186.45
   },
   {
-   "symbol": "KARURVYSYA",
-   "stop": 346.28,
-   "est_price": 393.5,
-   "est_qty": 105,
-   "industry": "Financial Services",
-   "info": "RS 21.6%",
-   "rule": "ema50",
-   "setup": "pivot"
+   "symbol": "ACMESOLAR",
+   "stop": 388.38,
+   "est_price": 424.82,
+   "est_qty": 136,
+   "industry": "Power",
+   "info": "RS 16.2%, VCP 23.2/9.4%",
+   "rule": "sma50",
+   "setup": "vcp",
+   "type": "stop",
+   "level": 424.82,
+   "atr": 18.22
   }
  ],
  "pending_sells": {},
- "last_date": "2026-11-17"
+ "last_date": "2026-11-18"
 }

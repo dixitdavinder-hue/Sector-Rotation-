@@ -1,15 +1,15 @@
 ,Sector,Quadrant,Prev wk,4 wks ago,Signal,Score,RS-Ratio,RS-Mom,Heading°,Tail speed,Rel 1M %,Rel 3M %,Rel 6M %,Mansfield RS,>50DMA,Fresh rotation
-1,PSU Bank,Leading,Leading,Lagging,OUTPERFORMING - strong,78.0,101.22,100.95,35,1.61,7.58,4.37,10.8,6.47,Yes,Yes
-2,Fin Services,Leading,Leading,Weakening,OUTPERFORMING - strong,69.5,100.89,100.53,54,2.44,0.77,3.37,3.87,2.57,Yes,Yes
-3,Bank,Leading,Lagging,Weakening,OUTPERFORMING - strong,67.2,100.21,100.58,86,2.14,1.19,4.13,8.57,4.49,Yes,Yes
-4,Realty,Improving,Improving,Lagging,LIKELY TO OUTPERFORM - early,64.7,99.68,101.05,36,1.68,1.41,-0.75,15.13,6.55,Yes,Yes
-5,Consumption,Improving,Improving,Improving,LIKELY TO OUTPERFORM - early,57.6,98.81,101.14,7,0.45,-0.06,-4.19,-0.7,0.4,Yes,
-6,Infra,Improving,Improving,Lagging,Watch - turning up,52.9,98.7,100.19,36,0.26,-0.27,-2.64,-4.83,-0.98,Yes,Yes
-7,MNC,Improving,Improving,Improving,Watch - turning up,48.5,98.43,101.28,25,0.61,-7.35,-13.83,-11.57,-6.38,Yes,
-8,Metal,Improving,Improving,Lagging,Watch - turning up,47.7,98.51,100.77,86,1.64,-6.13,-7.37,-13.17,-1.66,Yes,Yes
-9,Auto,Improving,Improving,Improving,Watch - turning up,43.1,98.91,100.98,333,0.52,-1.82,-9.12,-0.86,-1.31,Yes,
-10,IT,Weakening,Weakening,Leading,Losing leadership - book/trim,40.9,100.23,99.27,221,2.17,-7.35,-3.25,6.83,-4.35,Yes,Yes
-11,Pharma,Lagging,Lagging,Weakening,UNDERPERFORMING - avoid,40.2,99.22,98.87,208,1.71,-1.33,2.28,6.92,10.61,Yes,Yes
-12,FMCG,Lagging,Lagging,Lagging,UNDERPERFORMING - avoid,34.7,98.43,99.96,94,1.07,-4.1,-6.26,-14.11,-7.69,Yes,
-13,Energy,Improving,Lagging,Lagging,Watch - turning up,33.0,98.31,100.06,96,1.29,-7.73,-7.76,-14.01,-4.59,Yes,Yes
-14,PSE,Improving,Lagging,Lagging,Watch - turning up,31.6,98.15,100.0,110,1.05,-8.43,-8.31,-17.36,-8.63,Yes,Yes
+1,PSU Bank,Leading,Leading,Lagging,OUTPERFORMING - strong,79.2,101.29,100.98,34,1.69,8.89,5.74,14.54,7.71,Yes,Yes
+2,Fin Services,Leading,Leading,Weakening,OUTPERFORMING - strong,69.6,100.86,100.51,54,2.41,1.27,2.9,3.75,2.45,Yes,Yes
+3,Bank,Leading,Lagging,Weakening,OUTPERFORMING - strong,68.7,100.29,100.62,84,2.19,2.1,4.03,9.21,4.72,Yes,Yes
+4,Realty,Improving,Improving,Lagging,LIKELY TO OUTPERFORM - early,64.2,99.65,101.02,36,1.64,2.23,-2.78,15.5,6.31,Yes,Yes
+5,Infra,Improving,Improving,Lagging,Watch - turning up,53.7,98.74,100.23,37,0.32,0.15,-2.74,-4.35,-0.79,Yes,Yes
+6,Consumption,Improving,Improving,Improving,Watch - turning up,46.2,98.72,101.02,350,0.37,-0.39,-4.36,-0.66,-0.1,Yes,
+7,Pharma,Lagging,Lagging,Weakening,UNDERPERFORMING - avoid,43.8,99.35,99.02,205,1.52,0.39,3.19,7.21,11.38,Yes,Yes
+8,Auto,Improving,Improving,Improving,Watch - turning up,41.1,98.85,100.9,321,0.51,-2.68,-9.98,0.24,-2.03,Yes,
+9,IT,Weakening,Weakening,Leading,Losing leadership - book/trim,41.0,100.2,99.25,221,2.21,-11.07,-2.4,3.45,-4.88,Yes,Yes
+10,MNC,Improving,Improving,Improving,Watch - turning up,38.3,98.41,101.25,24,0.59,-7.17,-14.38,-11.49,-6.83,No,
+11,FMCG,Improving,Lagging,Lagging,Watch - turning up,37.6,98.48,100.02,91,1.12,-2.38,-4.99,-13.22,-7.14,Yes,Yes
+12,Metal,Improving,Improving,Lagging,Watch - turning up,35.7,98.44,100.69,89,1.56,-8.26,-10.6,-13.87,-3.53,No,Yes
+13,Energy,Improving,Lagging,Lagging,Watch - turning up,32.8,98.32,100.07,96,1.3,-6.81,-8.2,-13.1,-4.51,Yes,Yes
+14,PSE,Lagging,Lagging,Lagging,UNDERPERFORMING - avoid,21.3,98.14,100.0,110,1.05,-7.68,-8.87,-16.07,-8.72,No,
