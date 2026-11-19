@@ -39,7 +39,18 @@
    "setup": "wp"
   }
  },
- "pending_buys": [],
+ "pending_buys": [
+  {
+   "symbol": "PWL",
+   "stop": 126.0,
+   "est_price": 136.21,
+   "est_qty": 488,
+   "industry": "Consumer Services",
+   "info": "RS 14.5%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  }
+ ],
  "pending_sells": {},
- "last_date": "2026-11-18"
+ "last_date": "2026-11-19"
 }

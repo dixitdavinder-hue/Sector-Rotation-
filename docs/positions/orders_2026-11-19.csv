@@ -1,0 +1,5 @@
+book,action,symbol,qty,stop,note
+pivot,BUY-STOP,CPPLUS,13,4063.02,only if price trades above 4423.02; stop = fill - 2xATR (max 10%)
+pivot,BUY-STOP,ACMESOLAR,146,390.71,only if price trades above 424.82; stop = fill - 2xATR (max 10%)
+pivot,BUY,CRAFTSMAN,3,10498.4,skip if it opens at/below 10498.4
+wedgepop,BUY,PWL,488,126.0,skip if it opens at/below 126.0
