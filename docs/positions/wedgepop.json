@@ -1,5 +1,5 @@
 {
- "cash": 276350.0759205323,
+ "cash": 223766.720273346,
  "start_capital": 500000,
  "positions": {
   "BBOX": {
@@ -37,20 +37,41 @@
    "industry": "Healthcare",
    "rule": "wedge",
    "setup": "wp"
+  },
+  "PWL": {
+   "qty": 377,
+   "entry": 139.2,
+   "stop": 126.0,
+   "entry_date": "2026-11-20",
+   "industry": "Consumer Services",
+   "rule": "wedge",
+   "setup": "wp"
   }
  },
  "pending_buys": [
   {
-   "symbol": "PWL",
-   "stop": 126.0,
-   "est_price": 136.21,
-   "est_qty": 488,
-   "industry": "Consumer Services",
-   "info": "RS 14.5%, Wedge Pop",
+   "symbol": "PERSISTENT",
+   "stop": 5739.16,
+   "est_price": 6124.0,
+   "est_qty": 12,
+   "industry": "Information Technology",
+   "info": "RS 13.4%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  },
+  {
+   "symbol": "TATAELXSI",
+   "stop": 3620.51,
+   "est_price": 3850.0,
+   "est_qty": 19,
+   "industry": "Information Technology",
+   "info": "RS 7.4%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   }
  ],
- "pending_sells": {},
- "last_date": "2026-11-19"
+ "pending_sells": {
+  "GRAPHITE": "close < 10 & 20 EMA"
+ },
+ "last_date": "2026-11-20"
 }

@@ -1,0 +1,8 @@
+book,action,symbol,qty,stop,note
+pivot,BUY-STOP,ACMESOLAR,149,391.55,only if price trades above 424.82; stop = fill - 2xATR (max 10%)
+pivot,BUY,WELSPUNLIV,153,236.53,skip if it opens at/below 236.53
+pivot,BUY,ICICIBANK,25,1443.2,skip if it opens at/below 1443.2
+pivot,BUY,CEMPRO,29,1245.99,skip if it opens at/below 1245.99
+wedgepop,SELL,GRAPHITE,57,,close < 10 & 20 EMA
+wedgepop,BUY,PERSISTENT,12,5739.16,skip if it opens at/below 5739.16
+wedgepop,BUY,TATAELXSI,19,3620.51,skip if it opens at/below 3620.51
