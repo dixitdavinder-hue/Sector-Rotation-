@@ -1,0 +1,6 @@
+book,action,symbol,qty,stop,note
+pivot,BUY-STOP,ACMESOLAR,151,392.06,only if price trades above 424.82; stop = fill - 2xATR (max 10%)
+wedgepop,SELL,BBOX,54,,close < 10 & 20 EMA
+wedgepop,BUY,PTCIL,3,23342.7,skip if it opens at/below 23342.7
+wedgepop,BUY,TECHM,41,1690.01,skip if it opens at/below 1690.01
+wedgepop,BUY,ACMESOLAR,62,396.66,skip if it opens at/below 396.66

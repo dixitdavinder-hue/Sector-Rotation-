@@ -1,5 +1,5 @@
 {
- "cash": 223766.720273346,
+ "cash": 126161.92773257452,
  "start_capital": 500000,
  "positions": {
   "BBOX": {
@@ -8,15 +8,6 @@
    "stop": 787.74,
    "entry_date": "2026-11-12",
    "industry": "Information Technology",
-   "rule": "wedge",
-   "setup": "wp"
-  },
-  "GRAPHITE": {
-   "qty": 57,
-   "entry": 798.5,
-   "stop": 711.92,
-   "entry_date": "2026-11-13",
-   "industry": "Capital Goods",
    "rule": "wedge",
    "setup": "wp"
   },
@@ -46,32 +37,60 @@
    "industry": "Consumer Services",
    "rule": "wedge",
    "setup": "wp"
+  },
+  "PERSISTENT": {
+   "qty": 11,
+   "entry": 6159.5,
+   "stop": 5739.16,
+   "entry_date": "2026-11-23",
+   "industry": "Information Technology",
+   "rule": "wedge",
+   "setup": "wp"
+  },
+  "TATAELXSI": {
+   "qty": 19,
+   "entry": 3859.8,
+   "stop": 3620.51,
+   "entry_date": "2026-11-23",
+   "industry": "Information Technology",
+   "rule": "wedge",
+   "setup": "wp"
   }
  },
  "pending_buys": [
   {
-   "symbol": "PERSISTENT",
-   "stop": 5739.16,
-   "est_price": 6124.0,
-   "est_qty": 12,
-   "industry": "Information Technology",
-   "info": "RS 13.4%, Wedge Pop",
+   "symbol": "PTCIL",
+   "stop": 23342.7,
+   "est_price": 24425.0,
+   "est_qty": 3,
+   "industry": "Capital Goods",
+   "info": "RS 28.1%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   },
   {
-   "symbol": "TATAELXSI",
-   "stop": 3620.51,
-   "est_price": 3850.0,
-   "est_qty": 19,
+   "symbol": "TECHM",
+   "stop": 1690.01,
+   "est_price": 1777.5,
+   "est_qty": 41,
    "industry": "Information Technology",
-   "info": "RS 7.4%, Wedge Pop",
+   "info": "RS 16.2%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  },
+  {
+   "symbol": "ACMESOLAR",
+   "stop": 396.66,
+   "est_price": 411.6,
+   "est_qty": 62,
+   "industry": "Power",
+   "info": "RS 7.2%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   }
  ],
  "pending_sells": {
-  "GRAPHITE": "close < 10 & 20 EMA"
+  "BBOX": "close < 10 & 20 EMA"
  },
- "last_date": "2026-11-20"
+ "last_date": "2026-11-23"
 }

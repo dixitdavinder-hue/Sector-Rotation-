@@ -1,5 +1,5 @@
 {
- "cash": 254176.03325933847,
+ "cash": 133706.57525933848,
  "start_capital": 500000,
  "positions": {
   "CUPID": {
@@ -55,53 +55,50 @@
    "industry": "Automobile and Auto Components",
    "rule": "ema50",
    "setup": "pivot"
+  },
+  "WELSPUNLIV": {
+   "qty": 162,
+   "entry": 267.0,
+   "stop": 236.53,
+   "entry_date": "2026-11-23",
+   "industry": "Textiles",
+   "rule": "ema50",
+   "setup": "pivot"
+  },
+  "ICICIBANK": {
+   "qty": 25,
+   "entry": 1639.0,
+   "stop": 1443.2,
+   "entry_date": "2026-11-23",
+   "industry": "Financial Services",
+   "rule": "ema50",
+   "setup": "pivot"
+  },
+  "CEMPRO": {
+   "qty": 25,
+   "entry": 1440.0,
+   "stop": 1245.99,
+   "entry_date": "2026-11-23",
+   "industry": "Construction",
+   "rule": "ema50",
+   "setup": "pivot"
   }
  },
  "pending_buys": [
   {
    "symbol": "ACMESOLAR",
-   "stop": 391.55,
+   "stop": 392.06,
    "est_price": 424.82,
-   "est_qty": 149,
+   "est_qty": 151,
    "industry": "Power",
-   "info": "RS 8.8%, VCP 23.2/9.4%",
+   "info": "RS 7.2%, VCP 23.2/9.4%",
    "rule": "sma50",
    "setup": "vcp",
    "type": "stop",
    "level": 424.82,
-   "atr": 16.64
-  },
-  {
-   "symbol": "WELSPUNLIV",
-   "stop": 236.53,
-   "est_price": 268.78,
-   "est_qty": 153,
-   "industry": "Textiles",
-   "info": "RS 50.5%",
-   "rule": "ema50",
-   "setup": "pivot"
-  },
-  {
-   "symbol": "ICICIBANK",
-   "stop": 1443.2,
-   "est_price": 1640.0,
-   "est_qty": 25,
-   "industry": "Financial Services",
-   "info": "RS 19.2%",
-   "rule": "ema50",
-   "setup": "pivot"
-  },
-  {
-   "symbol": "CEMPRO",
-   "stop": 1245.99,
-   "est_price": 1415.9,
-   "est_qty": 29,
-   "industry": "Construction",
-   "info": "RS 14.1%",
-   "rule": "ema50",
-   "setup": "pivot"
+   "atr": 16.38
   }
  ],
  "pending_sells": {},
- "last_date": "2026-11-20"
+ "last_date": "2026-11-23"
 }
