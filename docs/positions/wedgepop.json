@@ -1,16 +1,7 @@
 {
- "cash": 126161.92773257452,
+ "cash": 207.77213919073256,
  "start_capital": 500000,
  "positions": {
-  "BBOX": {
-   "qty": 54,
-   "entry": 880.0,
-   "stop": 787.74,
-   "entry_date": "2026-11-12",
-   "industry": "Information Technology",
-   "rule": "wedge",
-   "setup": "wp"
-  },
   "GESHIP": {
    "qty": 36,
    "entry": 1526.1,
@@ -55,42 +46,36 @@
    "industry": "Information Technology",
    "rule": "wedge",
    "setup": "wp"
-  }
- },
- "pending_buys": [
-  {
-   "symbol": "PTCIL",
+  },
+  "PTCIL": {
+   "qty": 3,
+   "entry": 24880.0,
    "stop": 23342.7,
-   "est_price": 24425.0,
-   "est_qty": 3,
+   "entry_date": "2026-11-25",
    "industry": "Capital Goods",
-   "info": "RS 28.1%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   },
-  {
-   "symbol": "TECHM",
+  "TECHM": {
+   "qty": 41,
+   "entry": 1800.3,
    "stop": 1690.01,
-   "est_price": 1777.5,
-   "est_qty": 41,
+   "entry_date": "2026-11-25",
    "industry": "Information Technology",
-   "info": "RS 16.2%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   },
-  {
-   "symbol": "ACMESOLAR",
+  "ACMESOLAR": {
+   "qty": 58,
+   "entry": 412.4,
    "stop": 396.66,
-   "est_price": 411.6,
-   "est_qty": 62,
+   "entry_date": "2026-11-25",
    "industry": "Power",
-   "info": "RS 7.2%, Wedge Pop",
    "rule": "wedge",
    "setup": "wp"
   }
- ],
- "pending_sells": {
-  "BBOX": "close < 10 & 20 EMA"
  },
- "last_date": "2026-11-23"
+ "pending_buys": [],
+ "pending_sells": {},
+ "last_date": "2026-11-25"
 }

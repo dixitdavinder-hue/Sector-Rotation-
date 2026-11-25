@@ -1,0 +1,2 @@
+book,action,symbol,qty,stop,note
+pivot,BUY-STOP,ACMESOLAR,155,392.73,only if price trades above 424.82; stop = fill - 2xATR (max 10%)

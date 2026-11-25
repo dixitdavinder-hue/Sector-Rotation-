@@ -2,3 +2,4 @@ book,symbol,entry_date,exit_date,qty,entry,exit,pnl,ret_pct,reason
 wedgepop,PWL,2026-11-16,2026-11-17,566,132.44,129.25,-2102,-2.41,close < 10 & 20 EMA
 wedgepop,COHANCE,2026-11-12,2026-11-18,123,463.3,452.0,-1615,-2.44,close < 10 & 20 EMA
 wedgepop,GRAPHITE,2026-11-13,2026-11-23,57,798.5,769.4,-1837,-3.64,close < 10 & 20 EMA
+wedgepop,BBOX,2026-11-12,2026-11-25,54,880.0,867.7,-853,-1.4,close < 10 & 20 EMA

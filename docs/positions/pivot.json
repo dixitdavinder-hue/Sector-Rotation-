@@ -87,18 +87,18 @@
  "pending_buys": [
   {
    "symbol": "ACMESOLAR",
-   "stop": 392.06,
+   "stop": 392.73,
    "est_price": 424.82,
-   "est_qty": 151,
+   "est_qty": 155,
    "industry": "Power",
-   "info": "RS 7.2%, VCP 23.2/9.4%",
+   "info": "RS 7.3%, VCP 23.2/9.4%",
    "rule": "sma50",
    "setup": "vcp",
    "type": "stop",
    "level": 424.82,
-   "atr": 16.38
+   "atr": 16.05
   }
  ],
  "pending_sells": {},
- "last_date": "2026-11-23"
+ "last_date": "2026-11-25"
 }
