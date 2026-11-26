@@ -44,6 +44,3 @@ Pivot breakout filter: ON | Positional filter: ON | VCP + Wedge Pop: no breadth 
   Closed trades: 4, won 0%, P&L Rs -6,407
 
 TOTAL: Rs 1,502,565 on Rs 1,500,000  (+0.2%)
-
-Notes:
-  - pivot: ACMESOLAR VCP pivot 424.82 not taken out on 2026-11-25 -> order cancelled
