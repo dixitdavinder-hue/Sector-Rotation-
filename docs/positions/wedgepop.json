@@ -75,7 +75,20 @@
    "setup": "wp"
   }
  },
- "pending_buys": [],
- "pending_sells": {},
- "last_date": "2026-11-25"
+ "pending_buys": [
+  {
+   "symbol": "HAL",
+   "stop": 4718.69,
+   "est_price": 5074.0,
+   "est_qty": 9,
+   "industry": "Capital Goods",
+   "info": "RS 6.7%, Wedge Pop",
+   "rule": "wedge",
+   "setup": "wp"
+  }
+ ],
+ "pending_sells": {
+  "PWL": "close < 10 & 20 EMA"
+ },
+ "last_date": "2026-11-27"
 }

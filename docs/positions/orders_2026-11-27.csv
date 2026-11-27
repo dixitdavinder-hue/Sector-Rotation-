@@ -1,0 +1,4 @@
+book,action,symbol,qty,stop,note
+pivot,BUY-STOP,SYRMA,38,1406.98,only if price trades above 1536.53; stop = fill - 2xATR (max 10%)
+wedgepop,SELL,PWL,377,,close < 10 & 20 EMA
+wedgepop,BUY,HAL,9,4718.69,skip if it opens at/below 4718.69
