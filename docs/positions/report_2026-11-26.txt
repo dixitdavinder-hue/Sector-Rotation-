@@ -1,0 +1,48 @@
+PAPER TRADING  -  data up to 2026-11-26
+================================================================
+Breadth: 20 DMA 63.7% | 50 DMA 59.0% | 200 DMA 50.8%
+Pivot breakout filter: ON | Positional filter: ON | VCP + Wedge Pop: no breadth filter
+
+--- PIVOT BREAKOUT + VCP: equity Rs 499,020  (-0.2% since start)  cash Rs 133,707
+  BUY-STOP SYRMA x ~38 above 1536.53 tomorrow, stop ~1406.98  [Capital Goods, RS 6.1%, VCP 23.2/16.7/7.4%]
+  BUY  LAURUSLABS x ~16 at tomorrow's open (close 2505.0), stop 2204.4  [Healthcare, RS 42.3%]
+  Open positions: 9
+    ABDL            52 @    784.25 (2026-11-17)  now    820.30   +4.6%  stop    690.14  50 EMA    720.12
+    CEMPRO          25 @   1440.00 (2026-11-23)  now   1425.00   -1.0%  stop   1245.99  50 EMA   1285.62
+    CRAFTSMAN        3 @  11838.00 (2026-11-20)  now  11860.00   +0.2%  stop  10498.40  50 EMA  10907.03
+    CUPID           99 @    388.90 (2026-11-13)  now    371.10   -4.6%  stop    338.62  50 EMA    329.18
+    GABRIEL         30 @   1610.00 (2026-11-13)  now   1537.30   -4.5%  stop   1444.26  50 EMA   1434.99
+    HONASA          84 @    495.65 (2026-11-13)  now    533.25   +7.6%  stop    436.17  50 EMA    480.10
+    ICICIBANK       25 @   1639.00 (2026-11-23)  now   1611.00   -1.7%  stop   1443.20  50 EMA   1471.77
+    KARURVYSYA     103 @    394.20 (2026-11-18)  now    370.00   -6.1%  stop    346.28  50 EMA    356.22
+    WELSPUNLIV     162 @    267.00 (2026-11-23)  now    280.35   +5.0%  stop    236.53  50 EMA    233.63
+
+--- POSITIONAL: equity Rs 513,841  (+2.8% since start)  cash Rs 115,359
+  No orders for tomorrow.
+  Open positions: 10
+    ATHERENERG      25 @   1818.00 (2026-11-05)  now   1906.00   +4.8%  stop   1619.20  50 EMA   1687.49
+    ENGINERSIN     126 @    304.20 (2026-11-05)  now    291.15   -4.3%  stop    264.75  50 EMA    283.91
+    GLENMARK        14 @   2538.00 (2026-11-05)  now   2740.20   +8.0%  stop   2204.14  50 EMA   2461.04
+    LAURUSLABS      17 @   2328.30 (2026-11-05)  now   2505.00   +7.6%  stop   2044.94  50 EMA   2170.89
+    NAVINFLUOR       4 @   8890.00 (2026-11-05)  now  10270.00  +15.5%  stop   7730.80  50 EMA   8951.40
+    PPLPHARMA      158 @    240.80 (2026-11-05)  now    235.60   -2.2%  stop    209.23  50 EMA    221.59
+    SONACOMS        44 @    900.00 (2026-11-05)  now    881.50   -2.1%  stop    786.46  50 EMA    848.28
+    TECHM           20 @   1814.00 (2026-11-05)  now   1854.70   +2.2%  stop   1569.04  50 EMA   1700.79
+    TVSMOTOR         8 @   4390.00 (2026-11-05)  now   4550.10   +3.6%  stop   3811.46  50 EMA   4276.13
+    WELSPUNLIV     152 @    265.62 (2026-11-05)  now    280.35   +5.5%  stop    232.82  50 EMA    233.63
+
+--- WEDGE POP: equity Rs 499,264  (-0.1% since start)  cash Rs 208
+  SELL PWL x 377 at tomorrow's open  (close < 10 & 20 EMA)
+  BUY  HAL x ~9 at tomorrow's open (close 5074.0), stop 4718.69  [Capital Goods, RS 6.7%, Wedge Pop]
+  Open positions: 8
+    ACMESOLAR       58 @    412.40 (2026-11-25)  now    415.80   +0.8%  stop    396.66  10 & 20 EMA    411.01
+    GESHIP          36 @   1526.10 (2026-11-16)  now   1531.20   +0.3%  stop   1387.93  10 & 20 EMA   1517.16
+    PERSISTENT      11 @   6159.50 (2026-11-23)  now   6200.00   +0.7%  stop   5739.16  10 & 20 EMA   6004.50
+    PTCIL            3 @  24880.00 (2026-11-25)  now  24875.00   -0.0%  stop  23342.70  10 & 20 EMA  24205.20
+    PWL            377 @    139.20 (2026-11-20)  now    136.38   -2.0%  stop    126.00  10 & 20 EMA    132.49
+    TATAELXSI       19 @   3859.80 (2026-11-23)  now   3860.70   +0.0%  stop   3620.51  10 & 20 EMA   3769.02
+    TECHM           41 @   1800.30 (2026-11-25)  now   1854.70   +3.0%  stop   1690.01  10 & 20 EMA   1767.59
+    VIJAYA          48 @   1490.00 (2026-11-17)  now   1587.10   +6.5%  stop   1388.03  10 & 20 EMA   1500.78
+  Closed trades: 4, won 0%, P&L Rs -6,407
+
+TOTAL: Rs 1,512,125 on Rs 1,500,000  (+0.8%)
